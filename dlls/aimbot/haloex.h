@@ -95,7 +95,6 @@ namespace Skeleton {
         }
     }
 
-    // Bone offsets are expressed in these units.
     const float SMALL_UNIT = 0.0125f;
 
     struct BoneOffset {
@@ -104,25 +103,43 @@ namespace Skeleton {
     };
 
     BoneOffset getHeadOffset(EntityRecord record) {
+        const float u = SMALL_UNIT;
         switch (record.typeId) {
-            case TypeID_Marine:  return { 12, { 3, 1, 0 } };
-            case TypeID_Grunt:   return { 12, { 3, 2, 0 } };
-            case TypeID_Jackal:  return { 15, { 2, 2, 0 } };
-            case TypeID_Elite:   return { 17, { 0, 0, 0 } };
-            case TypeID_Hunter:  return {  3, { 1, 0, 0 } };
+            case TypeID_Marine:  return { 12, Vec3{ 3, 1, 0 } * u };
+            case TypeID_Grunt:   return { 12, Vec3{ 3, 2, 0 } * u };
+            case TypeID_Jackal:  return { 15, Vec3{ 2, 2, 0 } * u };
+            case TypeID_Elite:   return { 17, Vec3{ 0, 0, 0 } * u };
+            case TypeID_Hunter:  return {  3, Vec3{ 1, 0, 0 } * u };
             // case TypeID_Player:
-            default:             return {  3, { 1, 0, 0 } };
+            default:             return {  3, Vec3{ 1, 0, 0 } * u };
         }
+    }
+
+    Vec3 boneOffsetToWorld(Entity* pEntity, BoneOffset boneOff) {
+        Bone* bone = getBonePointer(pEntity, boneOff.boneIndex);
+        return bone->pos
+            + bone->x * boneOff.offset.x
+            + bone->y * boneOff.offset.y
+            + bone->z * boneOff.offset.z;
+    }
+
+    BoneOffset worldToBoneOffset(Entity* pEntity, int boneIndex, Vec3 worldPos) {
+        Bone* bone = getBonePointer(pEntity, boneIndex);
+        Vec3 diff = worldPos - bone->pos;
+        return {
+            boneIndex,
+            {
+                bone->x.dot(diff),
+                bone->y.dot(diff),
+                bone->z.dot(diff)
+            }
+        };
     }
 
     Vec3 getHeadPos(EntityRecord record) {
         Entity* pEntity = record.pEntity;
         BoneOffset head = getHeadOffset(record);
-        Bone* bone = getBonePointer(pEntity, head.boneIndex);
-        return bone->pos
-            + bone->x * head.offset.x * SMALL_UNIT
-            + bone->y * head.offset.y * SMALL_UNIT
-            + bone->z * head.offset.z * SMALL_UNIT;
+        return boneOffsetToWorld(pEntity, head);
     }
 
 }

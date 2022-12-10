@@ -148,6 +148,19 @@ namespace Drawing {
         pDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 1, vertices, sizeof(ColoredVertex));
     }
 
+    void drawLine3DTwoColor(
+        Vec3 a, Vec3 b,
+        D3DCOLOR colorA,
+        D3DCOLOR colorB
+    ) {
+        ColoredVertex vertices[] = {
+            { a.x, a.y, a.z, colorA },
+            { b.x, b.y, b.z, colorB },
+        };
+        pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+        pDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 1, vertices, sizeof(ColoredVertex));
+    }
+
     void drawThickLine3D(
         Vec3 a, Vec3 b,
         float thickness,
