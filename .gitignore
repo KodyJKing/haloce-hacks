@@ -1,0 +1,9 @@
+*.VC.db
+dxhooks/.vs/**
+dxhooks/Debug
+dxhooks/x64
+dlls/.vs/**
+dlls/Debug
+dlls/*/Debug
+dlls/x64
+tmp
