@@ -18,7 +18,9 @@ struct RaycastResult {
     Vec3 hit, normal;
     char pad_1[0x8];
     DWORD entityHandle;
-    char pad_2[0x14];
+    u_short unknown_1;
+    u_short boneIndex;
+    char pad_2[0x10];
 };
 
 typedef uint (__cdecl *RaycastFunction)(DWORD flags, Vec3 *pRayOrigin, Vec3 *pRayDisplacement, DWORD sourceEntityHandle, RaycastResult *pResult);

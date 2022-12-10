@@ -8,6 +8,8 @@
 
 #include "vec3.h"
 
+#define NULL_ENTITY_HANDLE 0xFFFFFFFF
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 

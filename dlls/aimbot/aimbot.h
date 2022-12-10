@@ -16,9 +16,11 @@ namespace Aimbot {
     bool showHead        = true;
     bool smoothTargeting = true;
     bool showAxes        = false;
+    bool showLookingAt   = true;
     // ===============
 
     EntityRecord targetEntity;
+    RaycastResult rcResult;
 
     // #region Aim
 
@@ -66,14 +68,52 @@ namespace Aimbot {
 
     // #endregion
 
-    void update() {
+    void doRaycast() {
+        rcResult = {};
+        DWORD flags = 0x001000E9; // Raycast flags are from traceProjectile function. See 004C04B6.
+        Vec3 origin = pCamData->pos;
+        Vec3 displacement = pCamData->fwd * 100.0f;
+        int status = raycast( flags, 
+            &origin, &displacement,
+            pPlayerData->entityHandle,
+            &rcResult );
+        
+        if( keypressed('C') ) {
+            // Teleport
+            debugLine(&origin, &rcResult.hit, 0xFFF98000, 5*1000);
+            if (rcResult.hitType != HitType_Nothing) {
+                Entity* pPlayer = getPlayerPointer();
+                pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;
+                pPlayer->velocity = pPlayer->velocity + pCamData->fwd * 0.1f;
+            }
+        }
 
+        if ( keypressed('X') ) {
+            std::cout << rcResult.boneIndex << std::endl;
+            // WORD* words = (WORD*) &result;
+            // uint size = sizeof(RaycastResult) / 2;
+            // uint valuesPerLine = 10;
+            // for (uint i = 0; i < size; i++) {
+            //     if (i > 0 && i % valuesPerLine == 0)
+            //         std::cout << std::endl;
+            //     std::cout << std::setw(5) << std::hex << words[i];
+            // }
+            // std::cout << std::endl;
+        }
+    }
+
+    void checkToggleKeys() {
         if (keypressed(VK_NUMPAD1)) showLines       = !showLines;
         if (keypressed(VK_NUMPAD2)) showNumbers     = !showNumbers;
         if (keypressed(VK_NUMPAD3)) showFrames      = !showFrames;
         if (keypressed(VK_NUMPAD4)) showHead        = !showHead;
         if (keypressed(VK_NUMPAD5)) smoothTargeting = !smoothTargeting;
         if (keypressed(VK_NUMPAD6)) showAxes        = !showAxes;
+        if (keypressed(VK_NUMPAD7)) showLookingAt   = !showLookingAt;
+    }
+
+    void update() {
+        checkToggleKeys();
 
         if (!GetAsyncKeyState(VK_SHIFT)) {
             targetEntity = {};
@@ -83,34 +123,14 @@ namespace Aimbot {
                 lookAt( Skeleton::getHeadPos(targetEntity) );
         }
 
-        if( keypressed('C') ) {
-            
-            RaycastResult result{};
-            DWORD flags = 0x001000E9; // Raycast flags are from traceProjectile function. See 004C04B6.
-            Vec3 origin = pCamData->pos;
-            Vec3 displacement = pCamData->fwd * 100.0f;
-            int status = raycast( flags, 
-                &origin, &displacement,
-                pPlayerData->entityHandle,
-                &result );
-            
-            debugLine(&origin, &result.hit, 0xFFF98000, 5*1000);
-
-            if (result.hitType != HitType_Nothing) {
-                Entity* pPlayer = getPlayerPointer();
-                pPlayer->pos = result.hit - pCamData->fwd * 1.0f;
-                pPlayer->velocity = pPlayer->velocity + pCamData->fwd * 0.1f;
-            }
-
-        }
-
+        doRaycast();
     }
 
     // #region Rendering
 
-    void renderBoneNumber(Bone* pBone, int i) {
+    void renderBoneNumber(Bone* pBone, int i, DWORD color) {
         auto text = std::to_string(i);
-        Drawing::drawText3D(pBone->pos, 0x80FFFFFF, {}, {0,10}, text.c_str());
+        Drawing::drawText3D(pBone->pos, color, {}, {0,10}, text.c_str());
     }
 
     void renderBoneFrame(Bone* pBone) {
@@ -127,7 +147,7 @@ namespace Aimbot {
             Drawing::drawLine3D(pos, pos + z, 0x800000FF);
     }
 
-    void renderBones(EntityRecord record) {
+    void renderBones(EntityRecord record, bool highlight, int highlightIndex) {
         if (record.typeId == TypeID_Player)
             return;
         
@@ -136,8 +156,9 @@ namespace Aimbot {
         
         for (uint i = 0; i < traits.numBones; i++) {
             Bone* pBone = getBonePointer(pEntity, i);
+            bool highLightBone = highlight && i == highlightIndex;
             if (showNumbers)
-                renderBoneNumber(pBone, i);
+                renderBoneNumber(pBone, i, highLightBone ? 0xFFFFFF00 : 0x80FFFFFF);
             if (showFrames)
                 renderBoneFrame(pBone);
         }
@@ -211,6 +232,15 @@ namespace Aimbot {
         Drawing::pDevice->SetViewport(&oldVP);
     }
 
+    void renderlookingAtEntityCaption() {
+        if (rcResult.entityHandle == 0)
+            return;
+        // EntityRecord record = getRecord(rcResult.entityHandle);
+        char buf[100];
+        sprintf_s(buf, "Looking at: %x", rcResult.entityHandle);
+        Drawing::drawText(pCamData->viewportWidth / 2, 0, 0xFFFFFFFF, {0, 1}, buf);
+    }
+
     void render() {
         Drawing::setup3DTransforms(pCamData->fov);
         Drawing::setDefaultRenderState();
@@ -220,21 +250,29 @@ namespace Aimbot {
         Entities entities;
         getValidEntityRecords(&entities);
 
+        EntityRecord entityUnderCrosshair{};
+        if ( rcResult.entityHandle )
+            entityUnderCrosshair = getRecord(rcResult.entityHandle);
+
         Drawing::enableDepthTest(false);
         for (auto record : entities) {
             bool alive = record.pEntity->health > 0.0f;
+            bool highlight = entityUnderCrosshair.pEntity == record.pEntity;
             if (!alive)
                 continue;
             if (showLines)
                 renderSkeleton(record);
             if (showNumbers || showFrames)
-                renderBones(record);
+                renderBones(record, highlight, rcResult.boneIndex);
             if (showHead)
                 renderHead(record);
         }
 
         if (showAxes)
             renderAxes();
+
+        if (showLookingAt)
+            renderlookingAtEntityCaption();
     }
 
     // #endregion
