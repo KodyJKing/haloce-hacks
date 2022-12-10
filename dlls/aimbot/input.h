@@ -15,7 +15,10 @@ namespace Input {
 
     std::priority_queue<FutureInput> inputQueue;
 
-    void click(DWORD downMilis) {
+    void click(DWORD downMilis, bool queue) {
+        if (!queue && inputQueue.size() > 0)
+            return;
+        
         INPUT input = {};
 
         DWORD tick = GetTickCount();
@@ -28,7 +31,7 @@ namespace Input {
         input.mi.time = 0;
         inputQueue.push({input, tick + downMilis});
     }
-    void click() { click(50); }
+    void click() { click(20, false); }
 
     void update() {
         

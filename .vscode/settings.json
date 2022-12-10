@@ -70,7 +70,8 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "queue": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "functional": "cpp"
     },
     "Lua.diagnostics.disable": [
         "lowercase-global",

@@ -15,11 +15,12 @@ namespace Aimbot {
     // === Toggles ===
     bool showLines       = true;
     bool showNumbers     = false;
-    bool showFrames      = false;
+    bool showFrames      = true;
     bool showHead        = true;
     bool smoothTargeting = true;
-    bool showAxes        = false;
+    bool showAxes        = true;
     bool showLookingAt   = true;
+    bool triggerbot      = true;
     // ===============
 
     RaycastResult rcResult;
@@ -32,6 +33,10 @@ namespace Aimbot {
 
         inline Vec3 worldPos() {
             return Skeleton::boneOffsetToWorld(entityRec.pEntity, boneOffset);
+        }
+
+        inline bool exists() {
+            return !!entityRec.pEntity;
         }
     };
 
@@ -62,16 +67,49 @@ namespace Aimbot {
         return checkVisible(pTarget, displacement);
     }
 
-    float getTargetScore(EntityRecord record) {
-        Vec3 toEntity = Skeleton::getHeadPos(record) - pCamData->pos;
+    float getTargetScore(Target target) {
+        if ( target.entityRec.typeId == TypeID_Jackal
+            && target.boneOffset.boneIndex == Skeleton::jackalShieldIndex )
+            return 0.0f;
+        if ( target.entityRec.typeId == TypeID_Hunter
+            && target.boneOffset.boneIndex != Skeleton::hunterTorsoIndex )
+            return 0.0f;
+
+        Vec3 toEntity = target.worldPos() - pCamData->pos;
         Vec3 unit = toEntity.unit();
-        return unit.dot(pCamData->fwd);
+        return unit.dot(pCamData->fwd) / toEntity.length();
     }
+
+    void randomizeTarget(Target* pTarget, float scale) {
+        float rx = (float) std::rand() / RAND_MAX;
+        float ry = (float) std::rand() / RAND_MAX;
+        float rz = (float) std::rand() / RAND_MAX;
+        pTarget->boneOffset.offset.x += (rx - 0.5f) * scale;
+        pTarget->boneOffset.offset.y += (ry - 0.5f) * scale;
+        pTarget->boneOffset.offset.z += (rz - 0.5f) * scale;
+    }
+
+    bool bPreviousTarget;
+    Target previousTarget;
+
+    const float previousTargetBias = 5.0f;
 
     Target bestTarget() {
 
         Target best = {};
         float bestScore = -1e+10;
+
+        if (bPreviousTarget && previousTarget.exists()) {
+            float score = getTargetScore(previousTarget) * previousTargetBias;
+            if (score > bestScore) {
+                bestScore = score;
+                best = previousTarget;
+
+                bPreviousTarget = true;
+            }
+        }
+
+        bPreviousTarget = false;
 
         EntityList* entityList = getpEntityList();
 
@@ -83,18 +121,43 @@ namespace Aimbot {
             if (!traits.hostile || !traits.living || record.pEntity->health <= 0.0f)
                 continue;
 
-            Target target = { record, Skeleton::getHeadOffset(record) };
-            if (!checkVisible(&target))
-                continue;
-            
-            float score = getTargetScore(record);
+            BoneOffset headBoneOffset = Skeleton::getHeadOffset(record);
+            // Target target = { record, headBoneOffset };
 
-            if (score > bestScore) {
-                bestScore = score;
-                best = target;
+            for (uint j = 0; j < traits.numBones; j++ ) {
+
+                bool isHead = j == headBoneOffset.boneIndex;
+                BoneOffset boneOffset = isHead ? headBoneOffset : BoneOffset{ (int)j, {0, 0, 0} };
+                Target target = { record, boneOffset };
+
+                int numRandomOffsets = isHead ? 19 : 3;
+                for (int i = 0; i < 1 + numRandomOffsets; i++) {
+                    Target targetPrime = target;
+                    if (i > 0)
+                        randomizeTarget(&targetPrime, Skeleton::SMALL_UNIT * 15.0f);
+                    
+                    if (!checkVisible(&targetPrime))
+                        continue;
+                    
+                    float score = getTargetScore(targetPrime);
+                    if (isHead)
+                        score *= 5.0;
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = targetPrime;
+
+                        bPreviousTarget = true;
+                        break;
+                    }
+                }
+
             }
 
+
         }
+        
+        previousTarget = best;
 
         return best;
     }
@@ -102,7 +165,9 @@ namespace Aimbot {
     void lookAt(Vec3 pos) {
         Vec3 dir = pos - pCamData->pos;
         if (smoothTargeting)
-            dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
+            // dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
+            // dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
+            dir = pCamData->fwd.lerp(dir.unit(), 0.33f);
         else
             dir = dir.unit();
         Angles angles = dir.toAngles();
@@ -126,7 +191,7 @@ namespace Aimbot {
         
         if( keypressed('C') ) {
             // Teleport
-            debugLine(&origin, &rcResult.hit, 0xFFF98000, 5*1000);
+            // debugLine(&origin, &rcResult.hit, 0xFFF98000, 5*1000);
             if (rcResult.hitType != HitType_Nothing) {
                 Entity* pPlayer = getPlayerPointer();
                 pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;
@@ -155,6 +220,7 @@ namespace Aimbot {
         if (keypressed(VK_NUMPAD5)) smoothTargeting = !smoothTargeting;
         if (keypressed(VK_NUMPAD6)) showAxes        = !showAxes;
         if (keypressed(VK_NUMPAD7)) showLookingAt   = !showLookingAt;
+        if (keypressed(VK_NUMPAD8)) triggerbot      = !triggerbot;
     }
 
     void update() {
@@ -167,7 +233,7 @@ namespace Aimbot {
             if (target.entityRec.pEntity) {
                 Vec3 pos = target.worldPos();
                 lookAt( pos );
-                if ( checkVisible( &target, pCamData->fwd * 50.0f) )
+                if ( triggerbot && checkVisible( &target, pCamData->fwd * 50.0f) )
                     Input::click();
             }
         }

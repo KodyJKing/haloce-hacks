@@ -97,6 +97,9 @@ namespace Skeleton {
 
     const float SMALL_UNIT = 0.0125f;
 
+    const int hunterTorsoIndex = 3;
+    const int jackalShieldIndex = 26;
+
     struct BoneOffset {
         int boneIndex;
         Vec3 offset;
