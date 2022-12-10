@@ -6,7 +6,7 @@
 #include "drawing.h"
 #include "debugdraw.h"
 #include "keypressed.h"
-
+#include "input.h"
 
 namespace Aimbot {
 
@@ -35,13 +35,12 @@ namespace Aimbot {
         }
     };
 
-    bool checkVisible(Target* pTarget) {
+    bool checkVisible(Target* pTarget, Vec3 displacement) {
         Vec3 pos = pTarget->worldPos();
         
         RaycastResult result = {};
         DWORD flags = 0x001000E9;
         Vec3 origin = pCamData->pos;
-        Vec3 displacement = (pos - pCamData->pos) * 1.1f;
         int status = raycast( flags, 
             &origin, &displacement,
             pPlayerData->entityHandle,
@@ -57,15 +56,21 @@ namespace Aimbot {
         return hitRecord.pEntity == pTarget->entityRec.pEntity;
     }
 
+    bool checkVisible(Target* pTarget) {
+        Vec3 pos = pTarget->worldPos();
+        Vec3 displacement = (pos - pCamData->pos) * 1.1f;
+        return checkVisible(pTarget, displacement);
+    }
+
     float getTargetScore(EntityRecord record) {
         Vec3 toEntity = Skeleton::getHeadPos(record) - pCamData->pos;
         Vec3 unit = toEntity.unit();
         return unit.dot(pCamData->fwd);
     }
 
-    EntityRecord bestTarget() {
+    Target bestTarget() {
 
-        EntityRecord best = {};
+        Target best = {};
         float bestScore = -1e+10;
 
         EntityList* entityList = getpEntityList();
@@ -86,7 +91,7 @@ namespace Aimbot {
 
             if (score > bestScore) {
                 bestScore = score;
-                best = record;
+                best = target;
             }
 
         }
@@ -98,9 +103,12 @@ namespace Aimbot {
         Vec3 dir = pos - pCamData->pos;
         if (smoothTargeting)
             dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
+        else
+            dir = dir.unit();
         Angles angles = dir.toAngles();
         pPlayerData->yaw = angles.yaw;
         pPlayerData->pitch = angles.pitch;
+        pCamData->fwd = dir;
     }
 
     // #endregion
@@ -155,11 +163,16 @@ namespace Aimbot {
         doRaycast();
 
         if (GetAsyncKeyState(VK_SHIFT)) {
-            EntityRecord targetEntity = bestTarget();
-            if (targetEntity.pEntity)
-                lookAt( Skeleton::getHeadPos(targetEntity) );
+            Target target = bestTarget();
+            if (target.entityRec.pEntity) {
+                Vec3 pos = target.worldPos();
+                lookAt( pos );
+                if ( checkVisible( &target, pCamData->fwd * 50.0f) )
+                    Input::click();
+            }
         }
 
+        Input::update();
     }
 
     // #region Rendering
