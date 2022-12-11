@@ -5,6 +5,7 @@
 #include "drawing.h"
 #include "debugdraw.h"
 #include "aimbot.h"
+#include "esp.h"
 
 HMODULE myHModule;
 HookRecord endSceneHookRecord;
@@ -73,21 +74,72 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
     FreeLibraryAndExitThread(myHModule, 0);
 }
 
+void checkOptionToggles() {
+    
+    #define BIND(vk, name) \
+        if ( keypressed( vk ) ) { \
+            Options::name = !Options::name; \
+            printf("%s %s\n", #name, Options::name ? "enabled" : "disabled"); \
+        }
+        
+    BIND(VK_F1, aimbot)
+    BIND(VK_F2, esp)
+    BIND(VK_NUMPAD1, showLines)
+    BIND(VK_NUMPAD2, showNumbers)
+    BIND(VK_NUMPAD3, showFrames)
+    BIND(VK_NUMPAD4, showHead)
+    BIND(VK_NUMPAD5, smoothTargeting)
+    BIND(VK_NUMPAD6, showAxes)
+    BIND(VK_NUMPAD7, showLookingAt)
+    BIND(VK_NUMPAD8, triggerbot)
+    BIND(VK_NUMPAD9, smartTargeting)
+    
+    #undef BIND
+
+}
+
+void teleportToCrosshair() {
+    RaycastResult rcResult = {};
+    raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
+    if (rcResult.hitType != HitType_Nothing) {
+        Entity* pPlayer = getPlayerPointer();
+        pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;
+        pPlayer->velocity = pPlayer->velocity + pCamData->fwd * 0.1f;
+    }
+}
+
+void onSceneEnd() {
+
+    checkOptionToggles();
+
+    ESP::render();
+    Aimbot::update();
+
+    if( keypressed('C') )
+        teleportToCrosshair();
+
+}
+
 // === Hooks ======
 
 // EndScene hook
 typedef HRESULT(_stdcall* EndSceneFunc)(IDirect3DDevice9* pThisDevice);
 HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
-    Aimbot::render();
-    Aimbot::update();
+    onSceneEnd();
     auto result = ((EndSceneFunc)endSceneHookRecord.oldMethod)(pThisDevice);
     return result;
  }
+
+void updateEntityHook() {
+    GET_DWORD_REG(entityHandle, ebx);
+    // std::cout << std::hex << entityHandle << std::endl;
+}
 
 void setupHooks() {
     void** vTable = Drawing::getDeviceVirtualTable();
     endSceneHookRecord = addHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
     // addJumpHook("CopyTransforms", 0x0051911dU, 6, (DWORD) copyTransforms);
+    addJumpHook("CopyTransforms", 0x004F4000U, 6, (DWORD) updateEntityHook);
 }
 
 void cleanupHooks() {

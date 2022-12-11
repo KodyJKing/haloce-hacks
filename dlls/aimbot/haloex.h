@@ -26,6 +26,17 @@ struct RaycastResult {
 typedef uint (__cdecl *RaycastFunction)(DWORD flags, Vec3 *pRayOrigin, Vec3 *pRayDisplacement, DWORD sourceEntityHandle, RaycastResult *pResult);
 const RaycastFunction raycast = (RaycastFunction) 0x00505880;
 
+const DWORD traceProjectileRaycastFlags = 0x001000E9; // See 004C04B6.
+
+void raycastPlayerCrosshair(RaycastResult* pRcResult, DWORD flags) {
+    Vec3 origin = pCamData->pos;
+    Vec3 displacement = pCamData->fwd * 100.0f;
+    int status = raycast( flags, 
+        &origin, &displacement,
+        pPlayerData->entityHandle,
+        pRcResult );
+}
+
 // === Entity Accessors ===
 
 typedef std::vector<EntityRecord> Entities;

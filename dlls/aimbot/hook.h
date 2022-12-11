@@ -166,3 +166,5 @@ void removeAllJumpHookRecords() {
     for (uint i = 0; i < jumpHookRecords.size(); i++)
         removeJumpHook(jumpHookRecords[i]);
 }
+
+#define GET_DWORD_REG(name, reg) DWORD name; __asm { mov [name], reg }

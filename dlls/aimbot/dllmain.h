@@ -19,3 +19,21 @@
 DWORD __stdcall myThread(LPVOID lpParameter);
 void setupHooks();
 void cleanupHooks();
+
+
+// === Options ===
+namespace Options {
+    bool aimbot          = false;
+    bool esp             = false;
+    bool freezeEntities  = false;
+    bool showLines       = true;
+    bool showNumbers     = false;
+    bool showFrames      = true;
+    bool showHead        = true;
+    bool smoothTargeting = true;
+    bool showAxes        = true;
+    bool showLookingAt   = true;
+    bool triggerbot      = false;
+    bool smartTargeting  = false;
+}
+// ===============
