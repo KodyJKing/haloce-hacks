@@ -78,8 +78,8 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
 // EndScene hook
 typedef HRESULT(_stdcall* EndSceneFunc)(IDirect3DDevice9* pThisDevice);
 HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
-    Aimbot::update();
     Aimbot::render();
+    Aimbot::update();
     auto result = ((EndSceneFunc)endSceneHookRecord.oldMethod)(pThisDevice);
     return result;
  }

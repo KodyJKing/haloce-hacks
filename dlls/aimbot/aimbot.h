@@ -20,7 +20,8 @@ namespace Aimbot {
     bool smoothTargeting = true;
     bool showAxes        = true;
     bool showLookingAt   = true;
-    bool triggerbot      = true;
+    bool triggerbot      = false;
+    bool smartTargeting  = false;
     // ===============
 
     RaycastResult rcResult;
@@ -40,9 +41,10 @@ namespace Aimbot {
         }
     };
 
-    bool checkVisible(Target* pTarget, Vec3 displacement) {
+    bool updateTargetIfOcluded(Target* pTarget) {
         Vec3 pos = pTarget->worldPos();
-        
+        Vec3 displacement = (pos - pCamData->pos) * 1.1f;
+
         RaycastResult result = {};
         DWORD flags = 0x001000E9;
         Vec3 origin = pCamData->pos;
@@ -51,10 +53,31 @@ namespace Aimbot {
             pPlayerData->entityHandle,
             &result );
 
-        if (result.boneIndex != pTarget->boneOffset.boneIndex)
+        if (!result.entityHandle)
             return false;
 
+        EntityRecord hitRecord = getRecord(result.entityHandle);
+        BoneOffset newOffset = Skeleton::worldToBoneOffset(hitRecord.pEntity, result.boneIndex, result.hit);
+        
+        pTarget->entityRec = hitRecord;
+        pTarget->boneOffset = newOffset;
+
+        return true;
+    }
+
+    bool checkVisible(Target* pTarget, Vec3 displacement) {
+        RaycastResult result = {};
+        DWORD flags = 0x001000E9;
+        Vec3 origin = pCamData->pos;
+        int status = raycast( flags, 
+            &origin, &displacement,
+            pPlayerData->entityHandle,
+            &result );
+
         if (!result.entityHandle)
+            return false;
+
+        if (result.boneIndex != pTarget->boneOffset.boneIndex)
             return false;
 
         EntityRecord hitRecord = getRecord(result.entityHandle);
@@ -75,9 +98,15 @@ namespace Aimbot {
             && target.boneOffset.boneIndex != Skeleton::hunterTorsoIndex )
             return 0.0f;
 
+        float shield = target.entityRec.pEntity->shield;
         Vec3 toEntity = target.worldPos() - pCamData->pos;
         Vec3 unit = toEntity.unit();
-        return unit.dot(pCamData->fwd) / toEntity.length();
+
+        float cosineScore   = unit.dot(pCamData->fwd) + 1.1f;
+        float distanceScore = !smartTargeting ? 1.0f : 1.0f / toEntity.length();
+        float shieldScore   = !smartTargeting ? 1.0f : 1.0f / (shield + 0.1f);
+
+        return cosineScore * distanceScore * shieldScore;
     }
 
     void randomizeTarget(Target* pTarget, float scale) {
@@ -89,58 +118,76 @@ namespace Aimbot {
         pTarget->boneOffset.offset.z += (rz - 0.5f) * scale;
     }
 
+    bool isValidTarget(EntityRecord record) {
+        EntityTraits traits = getEntityTraits(record);
+        return traits.hostile && traits.living && record.pEntity->health > 0.0f;
+    }
+
+    // === Best Target ===
     bool bPreviousTarget;
     Target previousTarget;
-
-    const float previousTargetBias = 5.0f;
-
+    const float previousTargetBias = 4.0f;
+    //
     Target bestTarget() {
 
         Target best = {};
-        float bestScore = -1e+10;
+        float bestScore = 0.0f;
 
-        if (bPreviousTarget && previousTarget.exists()) {
+        bool hadPreviousTarget = bPreviousTarget;
+        bPreviousTarget = false;
+
+        bool usingPreviousTarget = false;
+        if (
+            hadPreviousTarget &&
+            previousTarget.exists() &&
+            isValidTarget(previousTarget.entityRec) &&
+            checkVisible(&previousTarget)
+        ) {
             float score = getTargetScore(previousTarget) * previousTargetBias;
             if (score > bestScore) {
                 bestScore = score;
                 best = previousTarget;
 
                 bPreviousTarget = true;
+                usingPreviousTarget = true;
             }
         }
-
-        bPreviousTarget = false;
-
-        EntityList* entityList = getpEntityList();
 
         Entities entities;
         getValidEntityRecords(&entities);
         for (auto record : entities) {
 
-            EntityTraits traits = getEntityTraits(record);
-            if (!traits.hostile || !traits.living || record.pEntity->health <= 0.0f)
+            if (!isValidTarget(record))
                 continue;
 
             BoneOffset headBoneOffset = Skeleton::getHeadOffset(record);
-            // Target target = { record, headBoneOffset };
 
-            for (uint j = 0; j < traits.numBones; j++ ) {
+            for (uint j = 0; j < getEntityTraits(record).numBones; j++ ) {
 
                 bool isHead = j == headBoneOffset.boneIndex;
                 BoneOffset boneOffset = isHead ? headBoneOffset : BoneOffset{ (int)j, {0, 0, 0} };
                 Target target = { record, boneOffset };
 
-                int numRandomOffsets = isHead ? 19 : 3;
+                bool isPreviousTarget = usingPreviousTarget && j == previousTarget.boneOffset.boneIndex;
+                int numRandomOffsets = isPreviousTarget ? 0 : (isHead ? 19 : 4);
+                // int numRandomOffsets = isHead ? 5 : 1;
+                // int numRandomOffsets = 0;
+
                 for (int i = 0; i < 1 + numRandomOffsets; i++) {
                     Target targetPrime = target;
-                    if (i > 0)
-                        randomizeTarget(&targetPrime, Skeleton::SMALL_UNIT * 15.0f);
                     
-                    if (!checkVisible(&targetPrime))
+                    if (i > 0) {
+                        float drift = isPreviousTarget ? 1.0f : 15.0f;
+                        randomizeTarget(&targetPrime, Skeleton::SMALL_UNIT * drift);
+                    }
+                    
+                    if (!updateTargetIfOcluded(&targetPrime))
+                        continue;
+                    if (!isValidTarget(targetPrime.entityRec))
                         continue;
                     
                     float score = getTargetScore(targetPrime);
-                    if (isHead)
+                    if (targetPrime.boneOffset.boneIndex == headBoneOffset.boneIndex)
                         score *= 5.0;
 
                     if (score > bestScore) {
@@ -154,7 +201,6 @@ namespace Aimbot {
 
             }
 
-
         }
         
         previousTarget = best;
@@ -163,13 +209,11 @@ namespace Aimbot {
     }
 
     void lookAt(Vec3 pos) {
-        Vec3 dir = pos - pCamData->pos;
+        Vec3 dir = (pos - pCamData->pos).unit();
         if (smoothTargeting)
+            dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
+            // dir = pCamData->fwd.lerp(dir, 0.33f);
             // dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
-            // dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
-            dir = pCamData->fwd.lerp(dir.unit(), 0.33f);
-        else
-            dir = dir.unit();
         Angles angles = dir.toAngles();
         pPlayerData->yaw = angles.yaw;
         pPlayerData->pitch = angles.pitch;
@@ -180,7 +224,8 @@ namespace Aimbot {
 
     void doRaycast() {
         rcResult = {};
-        DWORD flags = 0x001000E9; // Raycast flags are from traceProjectile function. See 004C04B6.
+        // Raycast flags are from traceProjectile function. See 004C04B6.
+        DWORD flags = 0x001000E9;
         // DWORD flags = 0x89;
         Vec3 origin = pCamData->pos;
         Vec3 displacement = pCamData->fwd * 100.0f;
@@ -189,38 +234,39 @@ namespace Aimbot {
             pPlayerData->entityHandle,
             &rcResult );
         
+        // debugLine(&origin, &rcResult.hit, 0xFFF98000, 5*1000);
+
         if( keypressed('C') ) {
             // Teleport
-            // debugLine(&origin, &rcResult.hit, 0xFFF98000, 5*1000);
             if (rcResult.hitType != HitType_Nothing) {
                 Entity* pPlayer = getPlayerPointer();
                 pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;
                 pPlayer->velocity = pPlayer->velocity + pCamData->fwd * 0.1f;
             }
         }
-
-        // if ( keypressed('X') ) {
-        //     WORD* words = (WORD*) &result;
-        //     uint size = sizeof(RaycastResult) / 2;
-        //     uint valuesPerLine = 10;
-        //     for (uint i = 0; i < size; i++) {
-        //         if (i > 0 && i % valuesPerLine == 0)
-        //             std::cout << std::endl;
-        //         std::cout << std::setw(5) << std::hex << words[i];
-        //     }
-        //     std::cout << std::endl;
-        // }
+        
     }
 
     void checkToggleKeys() {
-        if (keypressed(VK_NUMPAD1)) showLines       = !showLines;
-        if (keypressed(VK_NUMPAD2)) showNumbers     = !showNumbers;
-        if (keypressed(VK_NUMPAD3)) showFrames      = !showFrames;
-        if (keypressed(VK_NUMPAD4)) showHead        = !showHead;
-        if (keypressed(VK_NUMPAD5)) smoothTargeting = !smoothTargeting;
-        if (keypressed(VK_NUMPAD6)) showAxes        = !showAxes;
-        if (keypressed(VK_NUMPAD7)) showLookingAt   = !showLookingAt;
-        if (keypressed(VK_NUMPAD8)) triggerbot      = !triggerbot;
+        
+        #define BIND(N, name) \
+            if ( keypressed( VK_NUMPAD ## N ) ) { \
+                name = !name; \
+                printf("%s %s\n", #name, name ? "enabled" : "disabled"); \
+            }
+            
+        BIND(1, showLines)
+        BIND(2, showNumbers)
+        BIND(3, showFrames)
+        BIND(4, showHead)
+        BIND(5, smoothTargeting)
+        BIND(6, showAxes)
+        BIND(7, showLookingAt)
+        BIND(8, triggerbot)
+        BIND(9, smartTargeting)
+        
+        #undef BIND
+
     }
 
     void update() {
