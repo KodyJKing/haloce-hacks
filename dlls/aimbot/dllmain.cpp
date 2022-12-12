@@ -6,6 +6,7 @@
 #include "debugdraw.h"
 #include "aimbot.h"
 #include "esp.h"
+#include "timehack.h"
 
 HMODULE myHModule;
 HookRecord endSceneHookRecord;
@@ -43,6 +44,7 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
     }
 
     Drawing::init();
+    TimeHack::init();
     setupHooks();
 
     if (!err) {
@@ -84,10 +86,12 @@ void checkOptionToggles() {
         
     BIND(VK_F1, aimbot)
     BIND(VK_F2, esp)
+    BIND(VK_F3, timeHack)
+    BIND(VK_F4, freezeTime)
     BIND(VK_NUMPAD1, showLines)
     BIND(VK_NUMPAD2, showNumbers)
     BIND(VK_NUMPAD3, showFrames)
-    BIND(VK_NUMPAD4, showHead)
+    BIND(VK_NUMPAD4, showLabels)
     BIND(VK_NUMPAD5, smoothTargeting)
     BIND(VK_NUMPAD6, showAxes)
     BIND(VK_NUMPAD7, showLookingAt)
@@ -110,6 +114,8 @@ void teleportToCrosshair() {
 
 void onSceneEnd() {
 
+    TimeHack::doSingleStep = false;
+
     checkOptionToggles();
 
     ESP::render();
@@ -118,7 +124,11 @@ void onSceneEnd() {
     if( keypressed('C') )
         teleportToCrosshair();
 
+    if ( keypressed(VK_F5) )
+        TimeHack::doSingleStep = true;
+    
 }
+
 
 // === Hooks ======
 
@@ -130,16 +140,9 @@ HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
     return result;
  }
 
-void updateEntityHook() {
-    GET_DWORD_REG(entityHandle, ebx);
-    // std::cout << std::hex << entityHandle << std::endl;
-}
-
 void setupHooks() {
     void** vTable = Drawing::getDeviceVirtualTable();
     endSceneHookRecord = addHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
-    // addJumpHook("CopyTransforms", 0x0051911dU, 6, (DWORD) copyTransforms);
-    addJumpHook("CopyTransforms", 0x004F4000U, 6, (DWORD) updateEntityHook);
 }
 
 void cleanupHooks() {

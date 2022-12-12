@@ -23,7 +23,11 @@ typedef struct {
 	char pad_00AC[52];  
 	float health;       
 	float shield;       
-	char pad_00E8[328]; 
+	char pad_00E8[44];
+	uint vehicleEntityHandle;
+	uint childEntityHandle;
+	uint parentEntityHandle;
+	char pad_0120[272];
 	Vec3 lookDir;       
 	char pad_023C[234]; 
 	char frags;         
@@ -71,6 +75,21 @@ typedef struct {
 } Matrix13;
 
 typedef Matrix13 Bone;
+
+enum EntityCategory {
+    EntityCategory_Biped,
+    EntityCategory_Vehicle,
+    EntityCategory_Weapon,
+    EntityCategory_Equipment,
+    EntityCategory_Garbage,
+    EntityCategory_Projectile,
+    EntityCategory_Scenery,
+    EntityCategory_Machine,
+    EntityCategory_Control,
+    EntityCategory_LightFixture,
+    EntityCategory_Placeholder,
+    EntityCategory_SoundScenery,
+};
 
 enum TypeID {
     TypeID_Player = 0x0DEC,

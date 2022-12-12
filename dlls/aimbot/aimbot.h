@@ -14,8 +14,6 @@ namespace Aimbot {
 
     RaycastResult rcResult;
 
-    // #region Aim
-
     struct Target {
         EntityRecord entityRec;
         BoneOffset boneOffset;
@@ -208,23 +206,8 @@ namespace Aimbot {
         pCamData->fwd = dir;
     }
 
-    // #endregion
-
-    void teleportToCrosshair() {
-        RaycastResult rcResult = {};
-        raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
-        if (rcResult.hitType != HitType_Nothing) {
-            Entity* pPlayer = getPlayerPointer();
-            pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;
-            pPlayer->velocity = pPlayer->velocity + pCamData->fwd * 0.1f;
-        }
-    }
-
     void update() {
         
-        if( keypressed('C') ) // This doesn't belong here.
-            teleportToCrosshair();
-
         if (!Options::aimbot)
             return;
 

@@ -119,14 +119,42 @@ namespace ESP {
     }
 
     void renderLookingAtCaption(RaycastResult* pResult) {
-        if (pResult->entityHandle == 0)
+        if ( pResult->hitType != HitType_Entity )
             return;
-        // EntityRecord record = getRecord(pResult->entityHandle);
+        EntityRecord record = getRecord(pResult->entityHandle);
+
+        bool print = keypressed('P');
+
         char buf[100];
-        sprintf_s(buf, "Looking at: %x", pResult->entityHandle);
-        Drawing::drawText(pCamData->viewportWidth / 2, 0, 0xFFFFFFFF, {0, 1}, buf);
-        sprintf_s(buf, "Bone index: %u", pResult->boneIndex);
-        Drawing::drawText(pCamData->viewportWidth / 2, 16, 0xFFFFFFFF, {0, 1}, buf);
+        int lineNum = 0;
+
+        #define LINE(format, ...) \
+            sprintf_s(buf, format, __VA_ARGS__); \
+            Drawing::drawText(pCamData->viewportWidth / 2, (lineNum++) * 16, 0xFFFFFFFF, {0, 1}, buf); \
+            if (print) std::cout << buf << std::endl;
+
+        if (print) std::cout << std::endl;
+        LINE("Handle %X", pResult->entityHandle);
+        LINE("Address %X", (DWORD) record.pEntity);
+        LINE("Type %X", record.typeId);
+        LINE("Bone index %u", pResult->boneIndex);
+
+        #undef LINE
+        
+    }
+
+    void renderEntityInfo(EntityRecord* pRecord) {
+        Entity* pEntity = pRecord->pEntity;
+        Vec3 pos = pEntity->pos;
+
+        float distance = (pos - pCamData->pos).length();
+        if (distance > 25.0f)
+            return;
+        
+        char buf[100];
+        sprintf_s( buf, "%X @%X", pRecord->typeId, (DWORD) pEntity );
+        
+        Drawing::drawText3D( pos, 0x40FFFFFF, {0, 1}, {}, buf );
     }
 
     void render() {
@@ -144,16 +172,21 @@ namespace ESP {
         RaycastResult rcResult;
         raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
 
-        EntityRecord entityUnderCrosshair{};
-        if ( rcResult.entityHandle )
+        EntityRecord entityUnderCrosshair = {};
+        if ( rcResult.hitType == HitType_Entity )
             entityUnderCrosshair = getRecord(rcResult.entityHandle);
 
         Drawing::enableDepthTest(false);
         for (auto record : entities) {
             bool alive = record.pEntity->health > 0.0f;
             bool highlight = entityUnderCrosshair.pEntity == record.pEntity;
+
+            if (Options::showLabels)
+                renderEntityInfo(&record);
+            
             if (!alive)
                 continue;
+
             if (Options::showLines)
                 renderSkeleton(record, highlight, rcResult.boneIndex);
             if (Options::showNumbers || Options::showFrames)

@@ -81,11 +81,13 @@ struct JumpHookRecord {
     size_t numStolenBytes;
     char* trampolineBytes;
     DWORD hookFunc;
+
+    DWORD trampolineReturn;
 };
 
 std::vector<JumpHookRecord> jumpHookRecords;
 
-JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc) {
+JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, bool naked, DWORD* trampolineReturn) {
     const char CALL = '\xE8';
     const char JMP = '\xE9';
     const char NOP = '\x90';
@@ -112,8 +114,10 @@ JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numSto
     // Call hook function with save/restore registers/flags
     write(&head, PUSHFD);
     write(&head, PUSHAD);
-    write(&head, CALL);
+    write(&head, naked ? JMP : CALL);
     writeOffset(&head, hookFunc);
+    if (trampolineReturn != nullptr)
+        *trampolineReturn = (DWORD) head;
     write(&head, POPAD);
     write(&head, POPFD);
 
@@ -145,6 +149,10 @@ JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numSto
     return record;
 }
 
+JumpHookRecord addJumpCallHook(const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc) {
+    return addJumpHook(description, address, numStolenBytes, hookFunc, false, nullptr);
+}
+
 void removeJumpHook(JumpHookRecord record) {
     std::cout << "Removing jump hook: " << record.description << std::endl;
 
@@ -168,3 +176,4 @@ void removeAllJumpHookRecords() {
 }
 
 #define GET_DWORD_REG(name, reg) DWORD name; __asm { mov [name], reg }
+#define MAKE_HOOKEE_RETURN __asm popad __asm popfd __asm ret
