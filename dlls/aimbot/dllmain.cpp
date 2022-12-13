@@ -9,7 +9,7 @@
 #include "timehack.h"
 
 HMODULE myHModule;
-HookRecord endSceneHookRecord;
+VTableHook endSceneHookRecord;
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
@@ -51,7 +51,8 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
         while (TRUE) {
             if (GetAsyncKeyState(VK_F9))
                 break;
-            rehook(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
+            endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
+            // rehookVTable(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
             Sleep(16);
         }
     }
@@ -129,7 +130,6 @@ void onSceneEnd() {
     
 }
 
-
 // === Hooks ======
 
 // EndScene hook
@@ -142,11 +142,11 @@ HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
 
 void setupHooks() {
     void** vTable = Drawing::getDeviceVirtualTable();
-    endSceneHookRecord = addHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
+    endSceneHookRecord = addVTableHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
 }
 
 void cleanupHooks() {
-    removeAllHooks();
+    removeAllVTableHooks();
     removeAllJumpHookRecords();
 }
 

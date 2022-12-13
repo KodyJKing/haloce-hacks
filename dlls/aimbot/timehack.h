@@ -107,7 +107,7 @@ namespace TimeHack {
         __asm mov [updateEntityHook_entityHandle], ebx;
 
         if (!shouldEntityUpdate(updateEntityHook_entityHandle))
-            MAKE_HOOKEE_RETURN;
+            POPSTATE_AND_RETURN; // Forces hooked function to return early so entity doesn't update.
 
         preUpdateEntity(updateEntityHook_entityHandle);
         
@@ -115,9 +115,12 @@ namespace TimeHack {
     }
 
     void init() {
-        addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, true, &updateEntityHook_trampolineReturn);
+        auto hook = addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE);
+        updateEntityHook_trampolineReturn = hook.trampolineReturn;
+
         // addJumpCallHook("PreUpdateEntity", 0x004F4000U, 6, (DWORD) preUpdateEntity);
-        addJumpCallHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity);
+
+        addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
     }
 
 }

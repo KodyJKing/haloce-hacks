@@ -5,25 +5,41 @@ typedef unsigned short ushort;
 
 #pragma once
 
-static DWORD rehookCooldown = 500;
+//#region VTable Hooks
 
-struct HookRecord {
+struct VTableHook {
     const char* description;
     void** vtable;
     int methodIndex;
     void* oldMethod;
     void* newMethod;
     DWORD dontRehookBeforeTick;
+
+    void unhook() {
+        std::cout << "Removing hook: " << description << std::endl;
+        vtable[methodIndex] = oldMethod;
+    }
+
+    void rehook(void** newVtable, DWORD cooldown) {
+        DWORD now = GetTickCount();
+        if (newVtable[methodIndex] == newMethod || dontRehookBeforeTick > now)
+            return;
+        vtable = newVtable;
+        dontRehookBeforeTick = now + cooldown;
+        std::cout << "Rehooking: " << description << std::endl;
+        oldMethod = vtable[methodIndex];
+        vtable[methodIndex] = newMethod;
+    }
 };
 
-std::vector<HookRecord> hookRecords;
+std::vector<VTableHook> hookRecords;
 
-HookRecord addHook(const char* description, void** vtable, int methodIndex, void* newMethod);
-void removeHook(HookRecord record);
+VTableHook addVTableHook(const char* description, void** vtable, int methodIndex, void* newMethod);
+void removeVTableHook(VTableHook record);
 
-HookRecord addHook(const char* description, void** vtable, int methodIndex, void* newMethod) {
+VTableHook addVTableHook(const char* description, void** vtable, int methodIndex, void* newMethod) {
     std::cout << "Adding hook: " << description << std::endl;
-    HookRecord record{};
+    VTableHook record{};
     record.description = description;
     record.vtable = vtable;
     record.methodIndex = methodIndex;
@@ -34,32 +50,29 @@ HookRecord addHook(const char* description, void** vtable, int methodIndex, void
     return record;
 }
 
-void removeHook(HookRecord record) {
-    std::cout << "Removing hook: " << record.description << std::endl;
-    record.vtable[record.methodIndex] = record.oldMethod;
-}
-
-void removeAllHooks() {
+void removeAllVTableHooks() {
     for(uint i = 0; i < hookRecords.size(); i++)
-        removeHook(hookRecords[i]);
+        hookRecords[i].unhook();
 }
 
-void rehook(HookRecord* pRecord, void** vtable) {
-    DWORD now = GetTickCount();
-    auto methodIndex = pRecord->methodIndex;
-    auto newMethod = pRecord->newMethod;
-    if (vtable[methodIndex] != newMethod) {
-        if (pRecord->dontRehookBeforeTick > now)
-            return;
-        pRecord->dontRehookBeforeTick = now + rehookCooldown;
-        std::cout << "Rehooking: " << pRecord->description << std::endl;
-        pRecord->oldMethod = vtable[methodIndex];
-        vtable[methodIndex] = newMethod;
-    }
-}
+//#endregion VTable Hooks
 
-//===== Jump Hooks =====
+//#region Jump Jooks
 
+#define GET_DWORD_REG(name, reg) DWORD name; __asm { mov [name], reg }
+#define POPSTATE_AND_RETURN __asm popad __asm popfd __asm ret
+
+// === Opcodes =======
+#define CALL   '\xE8'
+#define JMP    '\xE9'
+#define NOP    '\x90'
+#define PUSHFD '\x9C'
+#define POPFD  '\x9D'
+#define PUSHAD '\x60'
+#define POPAD  '\x61'
+// ===================
+
+// === Buffer Writing ===
 inline void writeBytes(char** pDest, char* src, size_t count) {
     memcpy(*pDest, src, count);
     *pDest += count;
@@ -74,74 +87,138 @@ inline void writeOffset(char** pDest, DWORD address) {
     int offset = (int)address - (int)(*pDest) - sizeof(DWORD);
     write(pDest, offset);
 }
+// ======================
 
-struct JumpHookRecord {
+struct JumpHook {
     const char* description;
     DWORD address;
-    size_t numStolenBytes;
-    char* trampolineBytes;
-    DWORD hookFunc;
+    size_t numStolenBytes; // Rather, the number of bytes overwritten. Not necessarily executed.
 
+    char* trampolineBytes;
     DWORD trampolineReturn;
+    size_t trampolineSize;
+    char* stolenBytes;
+
+    void allocTrampoline(size_t size) {
+        trampolineSize = size;
+        trampolineBytes = (char*) VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
+    }
+
+    void protectTrampoline() {
+        DWORD oldProtect;
+        VirtualProtect(trampolineBytes, trampolineSize, PAGE_EXECUTE_READ, &oldProtect);
+    }
+
+    void hook() {
+        std::cout << "Adding jump hook: " << description << std::endl;
+
+        stolenBytes = (char*) malloc(numStolenBytes);
+        memcpy(stolenBytes, (char*)address, numStolenBytes);
+
+        DWORD oldProtect;
+        VirtualProtect((void*)address, numStolenBytes, PAGE_EXECUTE_READWRITE, &oldProtect);
+
+        // Make sure anything not overwritten by jump is a nop
+        memset((void*)address, NOP, numStolenBytes);
+        char* head = (char*)address;
+
+        // Jump to trampoline
+        write(&head, JMP);
+        writeOffset(&head, (DWORD) trampolineBytes);
+
+        VirtualProtect((void*)address, numStolenBytes, oldProtect, &oldProtect);
+    }
+
+    void unhook() {
+        std::cout << "Removing jump hook: " << description << std::endl;
+
+        // Write back stolen bytes
+        DWORD oldProtect;
+        VirtualProtect((void*)address, numStolenBytes, PAGE_EXECUTE_READWRITE, &oldProtect);
+        memcpy((void*)address, stolenBytes, numStolenBytes);
+        VirtualProtect((void*)address, numStolenBytes, oldProtect, &oldProtect);
+
+        // Release trampoline
+        VirtualFree(trampolineBytes, 0, MEM_RELEASE);
+        free(stolenBytes);
+    }
+
+    // Trampoline code generation
+
+    void writeStolenBytes(char** head) {
+        writeBytes(head, (char*)address, numStolenBytes);
+    }
+
+    void writeReturnJump(char** head) {
+        write(head, JMP);
+        writeOffset(head, address + numStolenBytes);
+    }
+
+    void writePushState(char** head) {
+        write(head, PUSHFD);
+        write(head, PUSHAD);
+    }
+
+    void writePopState(char** head) {
+        write(head, POPAD);
+        write(head, POPFD);
+    }
+
+    void writeJump(char** head, DWORD hookFunc) {
+        write(head, JMP);
+        writeOffset(head, hookFunc);
+        trampolineReturn = (DWORD) *head;
+    }
+
+    void writeCall(char** head, DWORD hookFunc) {
+        write(head, CALL);
+        writeOffset(head, hookFunc);
+    }
+
 };
 
-std::vector<JumpHookRecord> jumpHookRecords;
+std::vector<JumpHook> jumpHookRecords;
 
-JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, bool naked, DWORD* trampolineReturn) {
-    const char CALL = '\xE8';
-    const char JMP = '\xE9';
-    const char NOP = '\x90';
-    const char PUSHFD = '\x9C';
-    const char POPFD = '\x9D';
-    const char PUSHAD = '\x60';
-    const char POPAD = '\x61';
+// === Jump hook flags ==========
+#define HK_JUMP         0b00000001
+#define HK_PUSH_STATE   0b00000010
+#define HK_STOLEN_AFTER 0b00000100
+// ===============================
 
-    char* head; // write head
+JumpHook addJumpHook(
+    const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, DWORD flags
+) {
+    JumpHook record = { description, address, numStolenBytes };
 
-    std::cout << "Adding jump hook: " << description << std::endl;
-
-    JumpHookRecord record = { description, address, numStolenBytes, nullptr, hookFunc };
-
-    size_t trampolineSize = numStolenBytes + 14;
-
-    record.trampolineBytes = (char*) VirtualAlloc(nullptr, trampolineSize, MEM_COMMIT, PAGE_READWRITE);
+    record.allocTrampoline(numStolenBytes + 14);
 
     // === Write trampoline code ===
-    head = record.trampolineBytes;
-    // Execute stolen bytes
-    writeBytes(&head, (char*)address, numStolenBytes);
+    char* head = record.trampolineBytes;
 
-    // Call hook function with save/restore registers/flags
-    write(&head, PUSHFD);
-    write(&head, PUSHAD);
-    write(&head, naked ? JMP : CALL);
-    writeOffset(&head, hookFunc);
-    if (trampolineReturn != nullptr)
-        *trampolineReturn = (DWORD) head;
-    write(&head, POPAD);
-    write(&head, POPFD);
+    bool execStolenAfter = flags & HK_STOLEN_AFTER;
 
-    // Jump back to hookee
-    write(&head, JMP);
-    writeOffset(&head, address + numStolenBytes);
+    if (!execStolenAfter)
+        record.writeStolenBytes(&head);
+
+    if (flags & HK_PUSH_STATE)
+        record.writePushState(&head);
+    
+    if (flags & HK_JUMP)
+        record.writeJump(&head, hookFunc);
+    else
+        record.writeCall(&head, hookFunc);
+
+    if (flags & HK_PUSH_STATE)
+        record.writePopState(&head);
+
+    if (execStolenAfter)
+        record.writeStolenBytes(&head);
+
+    record.writeReturnJump(&head);
     // =============================
 
-    DWORD oldProtect;
-    VirtualProtect(record.trampolineBytes, trampolineSize, PAGE_EXECUTE_READ, &oldProtect);
-
-    // === Write jump to trampoline ===
-    VirtualProtect((void*)address, numStolenBytes, PAGE_EXECUTE_READWRITE, &oldProtect);
-
-    // Make sure anything not overwritten by jump is a nop
-    memset((void*)address, NOP, numStolenBytes);
-    head = (char*)address;
-
-    // Jump to trampoline
-    write(&head, JMP);
-    writeOffset(&head, (DWORD)record.trampolineBytes);
-
-    VirtualProtect((void*)address, numStolenBytes, oldProtect, &oldProtect);
-    // ================================
+    record.protectTrampoline();
+    record.hook();
 
     std::cout << "Trampoline located at: " << std::hex << (DWORD)record.trampolineBytes << std::endl << std::endl;
 
@@ -149,31 +226,9 @@ JumpHookRecord addJumpHook(const char* description, DWORD address, size_t numSto
     return record;
 }
 
-JumpHookRecord addJumpCallHook(const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc) {
-    return addJumpHook(description, address, numStolenBytes, hookFunc, false, nullptr);
-}
-
-void removeJumpHook(JumpHookRecord record) {
-    std::cout << "Removing jump hook: " << record.description << std::endl;
-
-    DWORD address = record.address;
-    size_t numStolenBytes = record.numStolenBytes;
-    char* trampolineBytes = record.trampolineBytes;
-
-    // Write back stolen bytes
-    DWORD oldProtect;
-    VirtualProtect((void*)address, numStolenBytes, PAGE_EXECUTE_READWRITE, &oldProtect);
-    memcpy((void*)address, trampolineBytes, numStolenBytes);
-    VirtualProtect((void*)address, numStolenBytes, oldProtect, &oldProtect);
-
-    // Release trampoline
-    VirtualFree(trampolineBytes, 0, MEM_RELEASE);
-}
-
 void removeAllJumpHookRecords() {
     for (uint i = 0; i < jumpHookRecords.size(); i++)
-        removeJumpHook(jumpHookRecords[i]);
+        jumpHookRecords[i].unhook();
 }
 
-#define GET_DWORD_REG(name, reg) DWORD name; __asm { mov [name], reg }
-#define MAKE_HOOKEE_RETURN __asm popad __asm popfd __asm ret
+//#endregion Jump Jooks
