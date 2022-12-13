@@ -40,7 +40,7 @@ namespace ESP {
             Bone* pBone = getBonePointer(pEntity, i);
             bool highLightBone = highlight && i == highlightIndex;
             if (Options::showNumbers)
-                renderBoneNumber(pBone, i, highLightBone ? 0xFFFFFF00 : 0x80FFFFFF);
+                renderBoneNumber(pBone, i, highLightBone ? 0xFFFFFF00 : 0xFFFFFFFF);
             if (Options::showFrames)
                 renderBoneFrame(pBone);
         }
@@ -146,15 +146,43 @@ namespace ESP {
     void renderEntityInfo(EntityRecord* pRecord) {
         Entity* pEntity = pRecord->pEntity;
         Vec3 pos = pEntity->pos;
+        Vec3 camPos = pCamData->pos;
 
-        float distance = (pos - pCamData->pos).length();
-        if (distance > 25.0f)
+        float distance = (pos - camPos).length();
+        if (
+            pEntity->entityCategory == EntityCategory_SoundScenery ||
+            pEntity->entityCategory == EntityCategory_Scenery ||
+            distance > 25.0f
+        )
+            return;
+
+        RaycastResult result;
+        Vec3 displacement = pos - camPos;
+        raycast(
+            traceProjectileRaycastFlags,
+            &camPos, &displacement,
+            pPlayerData->entityHandle,
+            &result
+        );
+
+        float distanceToHit = (result.hit - camPos).length();
+        if (distanceToHit + 1.0f < distance)
             return;
         
         char buf[100];
-        sprintf_s( buf, "%X @%X", pRecord->typeId, (DWORD) pEntity );
+        int lineNum = 0;
+
+        #define LINE(format, ...) \
+            sprintf_s( buf, format, __VA_ARGS__ ); \
+            Drawing::drawText3D( pos, 0xFFFFFFFF, {0, 1}, {0, (lineNum++) * 16.0f}, buf );
         
-        Drawing::drawText3D( pos, 0x40FFFFFF, {0, 1}, {}, buf );
+        LINE("%04X %04X", pRecord->typeId, pRecord->unknown_2);
+        LINE("%04X %04X", pRecord->id,  pRecord->unknown_1);
+        LINE("@%08X", (DWORD) pEntity);
+        LINE("#%08X", pEntity->tag);
+
+        #undef LINE
+
     }
 
     void render() {

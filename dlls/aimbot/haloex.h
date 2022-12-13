@@ -56,6 +56,8 @@ Entity* getPlayerPointer() {
     return record.pEntity;
 }
 
+
+
 // === Skeletons ===
 
 namespace Skeleton {

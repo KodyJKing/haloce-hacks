@@ -94,7 +94,7 @@ namespace Drawing {
         *lbound -= delta;
     }
 
-    void drawText( int x, int y, D3DCOLOR color, Align align, const char * text ) {
+    void _drawText( int x, int y, D3DCOLOR color, Align align, const char * text ) {
         RECT rect = { x, y, x, y };
 
         #define ARGS(fmt) NULL, text, -1, &rect, fmt, color
@@ -114,16 +114,17 @@ namespace Drawing {
         #undef ARGS
     }
 
-    // bool drawTextBorders = true;
-    // void drawText( int x, int y, D3DCOLOR color, Align align, const char * text ) {
-    //     if (drawTextBorders) {
-    //         _drawText(x - 2, y + 0, 0, align, text);
-    //         _drawText(x + 2, y + 0, 0, align, text);
-    //         _drawText(x + 0, y - 2, 0, align, text);
-    //         _drawText(x + 0, y + 2, 0, align, text);
-    //     }
-    //     _drawText(x, y, color, align, text);
-    // }
+    bool drawTextBorders = true;
+    void drawText( int x, int y, D3DCOLOR color, Align align, const char * text ) {
+        if (drawTextBorders) {
+            D3DCOLOR black = 0xFF000000;
+            _drawText(x - 1, y + 0, black, align, text);
+            _drawText(x + 1, y + 0, black, align, text);
+            _drawText(x + 0, y - 1, black, align, text);
+            _drawText(x + 0, y + 1, black, align, text);
+        }
+        _drawText(x, y, color, align, text);
+    }
 
     void drawText3D( Vec3 pos, D3DCOLOR color, Align align, Vec3 offset, const char * text ) {
         Vec3 screenPos = worldToScreen(pos) + offset;

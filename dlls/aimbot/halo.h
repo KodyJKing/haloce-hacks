@@ -15,27 +15,35 @@ typedef unsigned short ushort;
 
 typedef struct {
 	// Created with ReClass.NET 1.2 by KN4CK3R
-	//Size: 0x0328
-	char pad_0000[92];  
+    uint tag;
+	char pad_0000[88];
 	Vec3 pos, velocity; 
 	char pad_0068[44];  
-	Vec3 eyePos;        
-	char pad_00AC[52];  
-	float health;       
-	float shield;       
+	Vec3 eyePos;
+	char pad_00AC[8];
+	ushort entityCategory;
+	char pad_00B6[42];
+	float health;
+	float shield;
 	char pad_00E8[44];
 	uint vehicleEntityHandle;
 	uint childEntityHandle;
 	uint parentEntityHandle;
 	char pad_0120[272];
 	Vec3 lookDir;       
-	char pad_023C[234]; 
-	char frags;         
-	char plasmas;       
+	char pad_023C[4];
+	float fuse;
+	char pad_0244[4];
+	float projectileAge;
+	float projectileAgeRate;
+	// char pad_0250[214];
+	// char frags;         
+	// char plasmas;       
 } Entity;
 
 typedef struct {
-    uint unknown_1;
+    ushort id;
+    ushort unknown_1;
     ushort unknown_2;
     ushort typeId;
     Entity *pEntity;
