@@ -926,7 +926,7 @@ halo.exe+B0014: D8 1D 8C 2B 67 00     - fcomp dword ptr [halo.exe+272B8C]
         <CheatEntry>
           <ID>82</ID>
           <Description>"Infinite Ammo"</Description>
-          <LastState Activated="1"/>
+          <LastState/>
           <VariableType>Auto Assembler Script</VariableType>
           <AssemblerScript>define(consumeClip,halo.exe+C4096)
 define(consumeGrenade,halo.exe+16E314)
@@ -2025,10 +2025,89 @@ dealloc(newmem)
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
-      <ID>105</ID>
-      <Description>"4 Bytes"</Description>
-      <VariableType>4 Bytes</VariableType>
-      <Address>401731F8</Address>
+      <ID>106</ID>
+      <Description>"Auto Assemble script"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : halo.exe
+  Version: 
+  Date   : 2022-12-13
+  Author : Kody
+
+  This script does blah blah blah
+}
+
+define(address,"halo.exe"+11C730)
+define(bytes,8B 54 24 08 56)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000)
+
+label(code)
+label(return)
+label(normalPath)
+
+newmem:
+
+code:
+
+  push eax
+    mov eax, [esp+380]
+    cmp eax, E44A01DB
+  pop eax
+
+  jne normalPath
+  ret
+
+normalPath:
+
+  mov edx,[esp+08]
+  push esi
+  jmp return
+
+address:
+  jmp newmem
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // mov edx,[esp+08]
+  // push esi
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: 0051C730
+
+0051C724: 83 C4 0C     - add esp,0C
+0051C727: C3           - ret 
+0051C728: CC           - int 3 
+0051C729: CC           - int 3 
+0051C72A: CC           - int 3 
+0051C72B: CC           - int 3 
+0051C72C: CC           - int 3 
+0051C72D: CC           - int 3 
+0051C72E: CC           - int 3 
+0051C72F: CC           - int 3 
+// ---------- INJECTING HERE ----------
+0051C730: 8B 54 24 08  - mov edx,[esp+08]
+// ---------- DONE INJECTING  ----------
+0051C734: 56           - push esi
+0051C735: 8B 74 24 10  - mov esi,[esp+10]
+0051C739: 57           - push edi
+0051C73A: 8B 7C 24 0C  - mov edi,[esp+0C]
+0051C73E: 85 FF        - test edi,edi
+0051C740: 74 20        - je 0051C762
+0051C742: 85 F6        - test esi,esi
+0051C744: 74 0E        - je 0051C754
+0051C746: 50           - push eax
+0051C747: 8B C6        - mov eax,esi
+}
+</AssemblerScript>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>

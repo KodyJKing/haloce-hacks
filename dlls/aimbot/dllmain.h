@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Windows.h>
 #include <iostream>
 #include <iomanip>
@@ -12,15 +14,12 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
 
-#pragma once
-
 #define DllExport __declspec( dllexport )
 #define Naked __declspec( naked )
 
 DWORD __stdcall myThread(LPVOID lpParameter);
 void setupHooks();
 void cleanupHooks();
-
 
 // === Options ===
 namespace Options {
@@ -39,4 +38,7 @@ namespace Options {
     bool smartTargeting  = false;
     bool showLabels      = false;
 }
+// extern std::unordered_map<std::string, bool> options;
+// #define DECLARE_OPTION(name, value) options[#name] = value;
+// #define OPTION(name) options[#name]
 // ===============
