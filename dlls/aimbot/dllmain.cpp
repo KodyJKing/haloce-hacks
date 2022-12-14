@@ -1,5 +1,5 @@
 #include "dllmain.h"
-#include "keypressed.h"
+#include "util/keypressed.h"
 #include "hook.h"
 #include "haloex.h"
 #include "drawing.h"

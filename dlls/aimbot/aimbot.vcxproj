@@ -161,19 +161,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="aimbot.h" />
+    <!-- <ClInclude Include="aimbot.h" />
     <ClInclude Include="D3DVTABLE_INDEX.h" />
     <ClInclude Include="debugdraw.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="drawing.h" />
+    <ClInclude Include="esp.h" />
     <ClInclude Include="halo.h" />
     <ClInclude Include="haloex.h" />
     <ClInclude Include="hook.h" />
-    <ClInclude Include="keypressed.h" />
-    <ClInclude Include="vec3.h" />
+    <ClInclude Include="includes.h" />
+    <ClInclude Include="timehack.h" />
+    <ClInclude Include="util\input.h" />
+    <ClInclude Include="util\keypressed.h" />
+    <ClInclude Include="vec3.h" /> -->
+    <ClInclude Include="**\*.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp" />
+    <!-- <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="util\input.cpp" />
+    <ClCompile Include="util\keypressed.cpp" /> -->
+    <ClCompile Include="**\*.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

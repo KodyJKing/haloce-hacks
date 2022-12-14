@@ -36,18 +36,36 @@
     <ClInclude Include="haloex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="keypressed.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="vec3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="aimbot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="esp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timehack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util\keypressed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\keypressed.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,4 +1,6 @@
-#include "dllmain.h"
+#pragma once
+
+#include "includes.h"
 #include "hook.h"
 #include "vec3.h"
 #include "haloex.h"

@@ -1,9 +1,9 @@
+#pragma once
+
 #include <iostream>
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
-
-#pragma once
 
 //#region VTable Hooks
 

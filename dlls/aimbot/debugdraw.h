@@ -1,7 +1,6 @@
-#include "drawing.h"
-// #include <algorithm>
-
 #pragma once
+
+#include "drawing.h"
 
 typedef unsigned char uchar;
 
@@ -14,9 +13,9 @@ namespace {
         DWORD expirationTick;
     };
 
-    const int bufferSize = 4096;
-    int writeHead = 0;
-    DebugLine lineBuffer[bufferSize] = {};
+    extern const int bufferSize = 4096;
+    extern int writeHead = 0;
+    extern DebugLine lineBuffer[bufferSize] = {};
     
     void addDebugLine(DebugLine line) {
         lineBuffer[writeHead++] = line;
@@ -63,7 +62,6 @@ namespace DebugDraw {
             *pAlpha = (uchar)(*pAlpha * s);
             if (l.expirationTick > now)
                 Drawing::drawThickLine3D(l.a, l.b, 0.005f, finalColor);
-                // Drawing::drawLine3D(l.a, l.b, finalColor);
         }
     }
     

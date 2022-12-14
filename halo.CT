@@ -18,6 +18,7 @@
             <CheatEntry>
               <ID>7</ID>
               <Description>"Entity List Base"</Description>
+              <LastState Value="400506EC" RealAddress="400506E8"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -26,6 +27,7 @@
             <CheatEntry>
               <ID>8</ID>
               <Description>"Number of Entities"</Description>
+              <LastState Value="1052" RealAddress="400506E4"/>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
               <Address>400506E4</Address>
@@ -33,6 +35,7 @@
             <CheatEntry>
               <ID>23</ID>
               <Description>"Number of Entities (Hex)"</Description>
+              <LastState Value="041C" RealAddress="400506E4"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
@@ -472,6 +475,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>41</ID>
                       <Description>"x"</Description>
+                      <LastState Value="-1.357059153E-35" RealAddress="009C0000"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement</Address>
@@ -479,6 +483,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>42</ID>
                       <Description>"y"</Description>
+                      <LastState Value="2.369107771E-38" RealAddress="009C0004"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+04</Address>
@@ -486,6 +491,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>43</ID>
                       <Description>"z"</Description>
+                      <LastState Value="Nan" RealAddress="009C0008"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+08</Address>
@@ -502,6 +508,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>44</ID>
                       <Description>"x"</Description>
+                      <LastState Value="2.101947696E-44" RealAddress="009C0020"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+00</Address>
@@ -509,6 +516,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>46</ID>
                       <Description>"y"</Description>
+                      <LastState Value="1.432800775E-38" RealAddress="009C0024"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+04</Address>
@@ -516,6 +524,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>45</ID>
                       <Description>"z"</Description>
+                      <LastState Value="1.441243318E-38" RealAddress="009C0028"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+08</Address>
@@ -765,6 +774,110 @@ dealloc(newmem)
             </CheatEntry>
           </CheatEntries>
         </CheatEntry>
+        <CheatEntry>
+          <ID>11</ID>
+          <Description>"Multi Projectile"</Description>
+          <Options moHideChildren="1" moManualExpandCollapse="1"/>
+          <LastState/>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : halo.exe
+  Version: 
+  Date   : 2022-04-13
+  Author : Kody
+
+  This script does blah blah blah
+}
+
+globalalloc(projectileCount, 4)
+
+[ENABLE]
+
+aobscanmodule(INJECT_MultiProjectile,halo.exe,E8 B6 0A 00 00) // should be unique
+alloc(newmem,$1000)
+alloc(loopCounter, 4)
+alloc(entityPtr, 4)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  push eax
+  mov eax, [esp+$36*04]
+  cmp eax, [player]
+  pop eax
+  jne normalPath
+
+  mov [loopCounter], 00000000
+  loop:
+    call 004C3F10
+    inc [loopCounter]
+
+    push eax
+    mov eax, [projectileCount]
+    cmp [loopCounter], eax
+    pop eax
+
+    jl loop
+
+  jmp return
+
+  normalPath:
+    call 004C3F10
+    jmp return
+
+INJECT_MultiProjectile:
+  jmp newmem
+return:
+registersymbol(INJECT_MultiProjectile)
+
+[DISABLE]
+
+INJECT_MultiProjectile:
+  db E8 B6 0A 00 00
+
+unregistersymbol(INJECT_MultiProjectile)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: 004C3455
+
+004C3443: 5F              - pop edi
+004C3444: 5E              - pop esi
+004C3445: 5D              - pop ebp
+004C3446: 5B              - pop ebx
+004C3447: 83 C4 08        - add esp,08
+004C344A: C3              - ret 
+004C344B: 8B 44 24 20     - mov eax,[esp+20]
+004C344F: 8B 4C 24 1C     - mov ecx,[esp+1C]
+004C3453: 50              - push eax
+004C3454: 51              - push ecx
+// ---------- INJECTING HERE ----------
+004C3455: E8 B6 0A 00 00  - call 004C3F10
+// ---------- DONE INJECTING  ----------
+004C345A: 83 C4 08        - add esp,08
+004C345D: 5F              - pop edi
+004C345E: 5E              - pop esi
+004C345F: 5D              - pop ebp
+004C3460: 5B              - pop ebx
+004C3461: 83 C4 08        - add esp,08
+004C3464: C3              - ret 
+004C3465: CC              - int 3 
+004C3466: CC              - int 3 
+004C3467: CC              - int 3 
+}
+</AssemblerScript>
+          <CheatEntries>
+            <CheatEntry>
+              <ID>12</ID>
+              <Description>"Projectile Count"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>projectileCount</Address>
+            </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -803,19 +916,6 @@ reopenProcess(memrec)
               <ActivateSound>Deactivate</ActivateSound>
             </Hotkey>
           </Hotkeys>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>33</ID>
-          <Description>"overlay"</Description>
-          <LastState/>
-          <VariableType>Auto Assembler Script</VariableType>
-          <AssemblerScript>[ENABLE]
-{$lua}
-if syntaxcheck then return end
-tryInjectDll(memrec)
-{$asm}
-[DISABLE]
-</AssemblerScript>
         </CheatEntry>
         <CheatEntry>
           <ID>73</ID>
@@ -1038,223 +1138,6 @@ halo.exe+C4939: CC                             - int 3
 halo.exe+C493A: CC                             - int 3 
 }
 </AssemblerScript>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>11</ID>
-          <Description>"Multi Projectile"</Description>
-          <Options moHideChildren="1" moManualExpandCollapse="1"/>
-          <LastState/>
-          <VariableType>Auto Assembler Script</VariableType>
-          <AssemblerScript>{ Game   : halo.exe
-  Version: 
-  Date   : 2022-04-13
-  Author : Kody
-
-  This script does blah blah blah
-}
-
-globalalloc(projectileCount, 4)
-
-[ENABLE]
-
-aobscanmodule(INJECT_MultiProjectile,halo.exe,E8 B6 0A 00 00) // should be unique
-alloc(newmem,$1000)
-alloc(loopCounter, 4)
-alloc(entityPtr, 4)
-
-label(code)
-label(return)
-
-newmem:
-
-code:
-  push eax
-  mov eax, [esp+$36*04]
-  cmp eax, [player]
-  pop eax
-  jne normalPath
-
-  mov [loopCounter], 00000000
-  loop:
-    call 004C3F10
-    inc [loopCounter]
-
-    push eax
-    mov eax, [projectileCount]
-    cmp [loopCounter], eax
-    pop eax
-
-    jl loop
-
-  jmp return
-
-  normalPath:
-    call 004C3F10
-    jmp return
-
-INJECT_MultiProjectile:
-  jmp newmem
-return:
-registersymbol(INJECT_MultiProjectile)
-
-[DISABLE]
-
-INJECT_MultiProjectile:
-  db E8 B6 0A 00 00
-
-unregistersymbol(INJECT_MultiProjectile)
-dealloc(newmem)
-
-{
-// ORIGINAL CODE - INJECTION POINT: 004C3455
-
-004C3443: 5F              - pop edi
-004C3444: 5E              - pop esi
-004C3445: 5D              - pop ebp
-004C3446: 5B              - pop ebx
-004C3447: 83 C4 08        - add esp,08
-004C344A: C3              - ret 
-004C344B: 8B 44 24 20     - mov eax,[esp+20]
-004C344F: 8B 4C 24 1C     - mov ecx,[esp+1C]
-004C3453: 50              - push eax
-004C3454: 51              - push ecx
-// ---------- INJECTING HERE ----------
-004C3455: E8 B6 0A 00 00  - call 004C3F10
-// ---------- DONE INJECTING  ----------
-004C345A: 83 C4 08        - add esp,08
-004C345D: 5F              - pop edi
-004C345E: 5E              - pop esi
-004C345F: 5D              - pop ebp
-004C3460: 5B              - pop ebx
-004C3461: 83 C4 08        - add esp,08
-004C3464: C3              - ret 
-004C3465: CC              - int 3 
-004C3466: CC              - int 3 
-004C3467: CC              - int 3 
-}
-</AssemblerScript>
-          <CheatEntries>
-            <CheatEntry>
-              <ID>12</ID>
-              <Description>"Projectile Count"</Description>
-              <ShowAsSigned>0</ShowAsSigned>
-              <VariableType>4 Bytes</VariableType>
-              <Address>projectileCount</Address>
-            </CheatEntry>
-          </CheatEntries>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>77</ID>
-          <Description>"Freeze Entities"</Description>
-          <LastState/>
-          <VariableType>Auto Assembler Script</VariableType>
-          <AssemblerScript>{ Game   : halo.exe
-  Version: 
-  Date   : 2022-12-03
-  Author : Kody
-
-  This script does blah blah blah
-}
-
-define(address,"halo.exe"+F4000)
-define(bytes,8B 0D B0 03 86 00)
-globalalloc(freezeEntities_enable,4)
-
-[ENABLE]
-
-{$c}
-  #include "dlls/aimbot/halo.h"
-{$asm}
-
-assert(address,bytes)
-alloc(newmem,$1000)
-
-label(code)
-label(return)
-
-newmem:
-
-code:
-  mov ecx,[halo.exe+4603B0]
-  //jmp return
-
-  push ebx
-{$ccode handle=ebx}
-  extern int freezeEntities_enable;
-  if (freezeEntities_enable) {
-    EntityRecord record = getRecord(handle);
-    int isPlayer = record.typeId == TypeID_Player;
-    EntityTraits traits = getEntityTraits(record);
-    int isDead = record.pEntity-&gt;health &lt; 0.0f;
-    handle = isPlayer || !traits.living || isDead;
-  } else {
-    handle = 1;
-  }
-{$asm}
-  cmp ebx,0
-  pop ebx
-
-  jne return // If the result is positive, continue with update.
-  ret // Otherwise, return early.
-
-address:
-  jmp newmem
-  nop
-
-return:
-
-
-[DISABLE]
-
-address:
-  db bytes
-  // mov ecx,[halo.exe+4603B0]
-
-dealloc(newmem)
-
-{
-// ORIGINAL CODE - INJECTION POINT: halo.exe+F4000
-
-halo.exe+F3FF6: 5E                    - pop esi
-halo.exe+F3FF7: C3                    - ret 
-halo.exe+F3FF8: CC                    - int 3 
-halo.exe+F3FF9: CC                    - int 3 
-halo.exe+F3FFA: CC                    - int 3 
-halo.exe+F3FFB: CC                    - int 3 
-halo.exe+F3FFC: CC                    - int 3 
-halo.exe+F3FFD: CC                    - int 3 
-halo.exe+F3FFE: CC                    - int 3 
-halo.exe+F3FFF: CC                    - int 3 
-// ---------- INJECTING HERE ----------
-halo.exe+F4000: 8B 0D B0 03 86 00     - mov ecx,[halo.exe+4603B0]
-// ---------- DONE INJECTING  ----------
-halo.exe+F4006: 8B 51 34              - mov edx,[ecx+34]
-halo.exe+F4009: 53                    - push ebx
-halo.exe+F400A: 55                    - push ebp
-halo.exe+F400B: 8B 6C 24 0C           - mov ebp,[esp+0C]
-halo.exe+F400F: 8B C5                 - mov eax,ebp
-halo.exe+F4011: 25 FF FF 00 00        - and eax,0000FFFF
-halo.exe+F4016: 8D 04 40              - lea eax,[eax+eax*2]
-halo.exe+F4019: 8B 44 82 08           - mov eax,[edx+eax*4+08]
-halo.exe+F401D: 0F BF 88 B4 00 00 00  - movsx ecx,word ptr [eax+000000B4]
-halo.exe+F4024: 56                    - push esi
-}
-</AssemblerScript>
-          <CheatEntries>
-            <CheatEntry>
-              <ID>80</ID>
-              <Description>"Enable"</Description>
-              <LastState/>
-              <VariableType>Auto Assembler Script</VariableType>
-              <AssemblerScript>[Enable]
-  freezeEntities_enable:
-    dw 1
-[Disable]
-  freezeEntities_enable:
-    dw 0
-</AssemblerScript>
-            </CheatEntry>
-          </CheatEntries>
         </CheatEntry>
       </CheatEntries>
     </CheatEntry>
@@ -1635,6 +1518,7 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>35</ID>
                   <Description>"Value to render"</Description>
+                  <LastState Value="00015D3F" RealAddress="008C0020"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -1716,6 +1600,7 @@ dealloc(newmem)
             <CheatEntry>
               <ID>27</ID>
               <Description>"Game"</Description>
+              <LastState Value="00905A4D" RealAddress="00400000"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -1798,6 +1683,7 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>76</ID>
                   <Description>"pointer"</Description>
+                  <LastState Value="00000020" RealAddress="008A0000"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -1912,6 +1798,7 @@ dealloc(newmem)
             <CheatEntry>
               <ID>74</ID>
               <Description>"Entity List"</Description>
+              <LastState Value="0063E26F" RealAddress="400506EC"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -1920,6 +1807,7 @@ dealloc(newmem)
             <CheatEntry>
               <ID>71</ID>
               <Description>"Entity Count"</Description>
+              <LastState Value="041C" RealAddress="400506E4"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
@@ -1928,12 +1816,14 @@ dealloc(newmem)
             <CheatEntry>
               <ID>21</ID>
               <Description>"Is Reticle Red"</Description>
+              <LastState Value="0" RealAddress="400008CC"/>
               <VariableType>4 Bytes</VariableType>
               <Address>400008CC</Address>
             </CheatEntry>
             <CheatEntry>
               <ID>22</ID>
               <Description>"Entity Under Crosshair (hostile only)"</Description>
+              <LastState Value="FFFFFFFF" RealAddress="402AD4D4"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -1949,72 +1839,84 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>83</ID>
                   <Description>"x"</Description>
+                  <LastState Value="-16.62190437" RealAddress="00719BC8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>84</ID>
                   <Description>"y"</Description>
+                  <LastState Value="-24.21113777" RealAddress="00719BCC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+4</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>85</ID>
                   <Description>"z"</Description>
+                  <LastState Value="92.33300018" RealAddress="00719BD0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>86</ID>
                   <Description>"fx"</Description>
+                  <LastState Value="0.2622114718" RealAddress="00719BD4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>87</ID>
                   <Description>"fy"</Description>
+                  <LastState Value="0.9504281282" RealAddress="00719BD8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+10</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>88</ID>
                   <Description>"fz"</Description>
+                  <LastState Value="-0.1671271771" RealAddress="00719BDC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+14</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>89</ID>
                   <Description>"ux"</Description>
+                  <LastState Value="0.04444780573" RealAddress="00719BE0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+18</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>90</ID>
                   <Description>"uy"</Description>
+                  <LastState Value="0.1611083001" RealAddress="00719BE4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+1C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>91</ID>
                   <Description>"uz"</Description>
+                  <LastState Value="0.9859353304" RealAddress="00719BE8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+20</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>92</ID>
                   <Description>"FOV"</Description>
+                  <LastState Value="0.8887580037" RealAddress="00719BF0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+28</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>93</ID>
                   <Description>"viewportHeight"</Description>
+                  <LastState Value="1024" RealAddress="00719C50"/>
                   <VariableType>2 Bytes</VariableType>
                   <Address>00719BC8+88</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>94</ID>
                   <Description>"viewportWidth"</Description>
+                  <LastState Value="1280" RealAddress="00719C52"/>
                   <VariableType>2 Bytes</VariableType>
                   <Address>00719BC8+8A</Address>
                 </CheatEntry>
@@ -2027,7 +1929,7 @@ dealloc(newmem)
     <CheatEntry>
       <ID>106</ID>
       <Description>"Auto Assemble script"</Description>
-      <LastState Activated="1"/>
+      <LastState/>
       <VariableType>Auto Assembler Script</VariableType>
       <AssemblerScript>{ Game   : halo.exe
   Version: 
@@ -3378,7 +3280,7 @@ dealloc(newmem)
     </SymbolEntry>
     <SymbolEntry>
       <Name>projectileCount</Name>
-      <Address>008C0010</Address>
+      <Address>00980000</Address>
     </SymbolEntry>
     <SymbolEntry>
       <Name>zeroVector</Name>
@@ -3402,7 +3304,7 @@ dealloc(newmem)
     </SymbolEntry>
     <SymbolEntry>
       <Name>freezeEntities_enable</Name>
-      <Address>00C70010</Address>
+      <Address>00980010</Address>
     </SymbolEntry>
   </UserdefinedSymbols>
   <Structures StructVersion="2">

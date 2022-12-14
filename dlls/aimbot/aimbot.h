@@ -1,18 +1,16 @@
 #pragma once
 
-#include "dllmain.h"
+#include "includes.h"
 #include "halo.h"
 #include "haloex.h"
 #include "drawing.h"
 #include "debugdraw.h"
-#include "keypressed.h"
-#include "input.h"
+#include "util/keypressed.h"
+#include "util/input.h"
 
 namespace Aimbot {
 
     using Skeleton::BoneOffset;
-
-    RaycastResult rcResult;
 
     struct Target {
         EntityRecord entityRec;
@@ -197,9 +195,7 @@ namespace Aimbot {
     void lookAt(Vec3 pos) {
         Vec3 dir = (pos - pCamData->pos).unit();
         if (Options::smoothTargeting)
-            dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
-            // dir = pCamData->fwd.lerp(dir, 0.33f);
-            // dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
+            dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
         Angles angles = dir.toAngles();
         pPlayerData->yaw = angles.yaw;
         pPlayerData->pitch = angles.pitch;

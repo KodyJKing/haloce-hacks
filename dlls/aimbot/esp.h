@@ -1,12 +1,11 @@
 #pragma once
 
-#include "dllmain.h"
+#include "includes.h"
 #include "halo.h"
 #include "haloex.h"
 #include "drawing.h"
 #include "debugdraw.h"
-#include "keypressed.h"
-#include "input.h"
+#include "util/keypressed.h"
 
 namespace ESP {
 

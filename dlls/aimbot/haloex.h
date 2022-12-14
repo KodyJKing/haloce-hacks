@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dllmain.h"
+#include "includes.h"
 #include "halo.h"
 
 // === Raycasting ===
@@ -55,8 +55,6 @@ Entity* getPlayerPointer() {
     auto record = getRecord( pPlayerData->entityHandle );
     return record.pEntity;
 }
-
-
 
 // === Skeletons ===
 
@@ -158,61 +156,4 @@ namespace Skeleton {
         return boneOffsetToWorld(pEntity, head);
     }
 
-}
-
-// === Debug Functions ===
-
-#define PAD_DWORD std::setfill('0') << std::setw(8)
-#define UPPER_HEX std::uppercase << std::hex
-
-void printRecord(EntityRecord record) {
-    std::cout
-        << PAD_DWORD << UPPER_HEX << record.unknown_1 << " "
-        << PAD_DWORD << UPPER_HEX << record.unknown_2 << " "
-        << PAD_DWORD << record.pEntity;
-}
-
-void printCameraData() {
-    std::cout << "{\n";
-
-    #define printVec(v) std::printf("{ x: %f.4, y: %f.4, z: %f.4 }", (v).x, (v).y, (v).z)
-    #define printVecLine(name) std::cout << "\n    "#name": "; printVec(pCamData->name)
-    printVecLine(pos);
-    printVecLine(fwd);
-    printVecLine(up);
-    #undef printVecLine
-    #undef printVec
-
-    std::cout << "\n    fov: " << pCamData->fov;
-    std::cout << "\n    viewportHeight: " << std::dec
-        << pCamData->viewportHeight;
-    std::cout << "\n    viewportWidth: " << std::dec
-        << pCamData->viewportWidth;
-
-    std::cout << "\n}\n";
-}
-
-void printEntityRecord(int address) {
-    EntityList* entityList = getpEntityList();
-    int index = findEntityIndex(address);
-    if (index) {
-        EntityRecord record = entityList->pEntityRecords[index];
-        printRecord(record);
-        std::cout << std::endl;
-    } else {
-        std::cout << "Address not found in entity list." << std::endl;
-    }
-}
-
-void printEntityRecords() {
-    EntityList* entityList = getpEntityList();
-    const int entriesPerLine = 3;
-    for (int i = 0; i < entityList->capcity; i++) {
-        EntityRecord record = entityList->pEntityRecords[i];
-        if ( i % entriesPerLine == 0 )
-            std::cout << std::endl;
-        else
-            std::cout << " | ";
-        printRecord(record);
-    }
 }

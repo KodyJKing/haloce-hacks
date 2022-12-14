@@ -129,11 +129,9 @@ EntityTraits getEntityTraits(EntityRecord record) {
 }
 
 // Pointers
-EntityList **ppEntityList = (EntityList**) 0x008603B0;
-CameraData *pCamData      = (CameraData*)  0x00719BC8;
-PlayerData *pPlayerData   = (PlayerData*)  0x402AD4AC;
-
-const uint entityBoneListOffset = 0x550;
+EntityList** const ppEntityList = (EntityList**) 0x008603B0;
+CameraData*  const pCamData     = (CameraData*)  0x00719BC8;
+PlayerData*  const pPlayerData  = (PlayerData*)  0x402AD4AC;
 
 inline EntityList* getpEntityList() {
     return *ppEntityList;
@@ -167,6 +165,7 @@ EntityRecord getRecord(int handle) {
 // }
 
 Bone* getBonePointer(Entity* pEntity, uint index) {
+    static const uint entityBoneListOffset = 0x550;
     uint address = ((uint)pEntity) + entityBoneListOffset + index * sizeof(Bone);
     return (Bone*)address;
 }
