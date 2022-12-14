@@ -15,60 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="dllmain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="D3DVTABLE_INDEX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="debugdraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="drawing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="halo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="haloex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="keypressed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="vec3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="**\*.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="**\*.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="**\*.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="**\*.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="**\*.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="**\*.h">
+    <ClInclude Include="aimbot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="**\*.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="**\*.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="**\*.cpp">
+    <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,8 +1,18 @@
-#include "aimbot.h"
+#pragma once
+
+#include "dllmain.h"
+#include "halo.h"
+#include "haloex.h"
+#include "drawing.h"
+#include "debugdraw.h"
+#include "keypressed.h"
+#include "input.h"
 
 namespace Aimbot {
 
     using Skeleton::BoneOffset;
+
+    RaycastResult rcResult;
 
     struct Target {
         EntityRecord entityRec;
@@ -68,10 +78,10 @@ namespace Aimbot {
 
     float getTargetScore(Target target) {
         if ( target.entityRec.typeId == TypeID_Jackal
-            && target.boneOffset.boneIndex == JACKAL_SHIELD_INDEX )
+            && target.boneOffset.boneIndex == Skeleton::jackalShieldIndex )
             return 0.0f;
         if ( target.entityRec.typeId == TypeID_Hunter
-            && target.boneOffset.boneIndex != HUNTER_TORSO_INDEX )
+            && target.boneOffset.boneIndex != Skeleton::hunterTorsoIndex )
             return 0.0f;
 
         float shield = target.entityRec.pEntity->shield;
@@ -154,7 +164,7 @@ namespace Aimbot {
                     
                     if (i > 0) {
                         float drift = isPreviousTarget ? 1.0f : 15.0f;
-                        randomizeTarget(&targetPrime, SMALL_UNIT * drift);
+                        randomizeTarget(&targetPrime, Skeleton::SMALL_UNIT * drift);
                     }
                     
                     if (!updateTargetIfOcluded(&targetPrime))
@@ -187,7 +197,9 @@ namespace Aimbot {
     void lookAt(Vec3 pos) {
         Vec3 dir = (pos - pCamData->pos).unit();
         if (Options::smoothTargeting)
-            dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
+            dir = pCamData->fwd.lerp(dir.unit(), 0.5f);
+            // dir = pCamData->fwd.lerp(dir, 0.33f);
+            // dir = pCamData->fwd.lerp(dir.unit(), 0.25f);
         Angles angles = dir.toAngles();
         pPlayerData->yaw = angles.yaw;
         pPlayerData->pitch = angles.pitch;

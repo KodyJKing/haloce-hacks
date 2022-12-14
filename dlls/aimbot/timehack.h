@@ -1,6 +1,7 @@
-#pragma once
-
-#include "timehack.h"
+#include "dllmain.h"
+#include "hook.h"
+#include "vec3.h"
+#include "haloex.h"
 
 namespace TimeHack {
 

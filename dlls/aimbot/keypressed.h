@@ -1,4 +1,6 @@
-#include "keypressed.h"
+#include "dllmain.h"
+
+#pragma once
 
 bool wasPressed[0xFF] = {};
 int keypressed(char vk) {

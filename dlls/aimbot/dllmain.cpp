@@ -1,13 +1,12 @@
 #include "dllmain.h"
-#include "halo.h"
-#include "util/drawing.h"
-#include "util/debugdraw.h"
-#include "util/D3DVTABLE_INDEX.h"
-#include "util/keypressed.h"
-#include "util/hook.h"
-#include "hacks/aimbot.h"
-#include "hacks/esp.h"
-#include "hacks/timehack.h"
+#include "keypressed.h"
+#include "hook.h"
+#include "haloex.h"
+#include "drawing.h"
+#include "debugdraw.h"
+#include "aimbot.h"
+#include "esp.h"
+#include "timehack.h"
 
 HMODULE myHModule;
 VTableHook endSceneHookRecord;
@@ -53,6 +52,7 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
             if (GetAsyncKeyState(VK_F9))
                 break;
             endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
+            // rehookVTable(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
             Sleep(16);
         }
     }
@@ -105,7 +105,7 @@ void checkOptionToggles() {
 
 void teleportToCrosshair() {
     RaycastResult rcResult = {};
-    raycastPlayerCrosshair(&rcResult, PROJECTILE_RAYCAST_FLAGS);
+    raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
     if (rcResult.hitType != HitType_Nothing) {
         Entity* pPlayer = getPlayerPointer();
         pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;

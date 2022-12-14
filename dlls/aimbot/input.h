@@ -1,4 +1,7 @@
-#include "input.h"
+#include "dllmain.h"
+#include <queue>
+
+#pragma once
 
 namespace Input {
 

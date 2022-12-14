@@ -1,15 +1,19 @@
 #pragma once
 
-#include "includes.h"
+#ifdef __cplusplus
+    #define IF_C(x)
+#else
+    #define IF_C(x) x
+#endif
+
 #include "vec3.h"
 
-#define NULLHANDLE 0xFFFFFFFF
-#define PROJECTILE_RAYCAST_FLAGS 0x001000E9
+#define NULL_ENTITY_HANDLE 0xFFFFFFFF
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
-struct Entity {
+typedef struct {
 	// Created with ReClass.NET 1.2 by KN4CK3R
     uint tag;
 	char pad_0000[88];
@@ -35,33 +39,33 @@ struct Entity {
 	// char pad_0250[214];
 	// char frags;         
 	// char plasmas;       
-};
+} Entity;
 
-struct EntityRecord {
+typedef struct {
     ushort id;
     ushort unknown_1;
     ushort unknown_2;
     ushort typeId;
     Entity *pEntity;
-};
+} EntityRecord;
 
-struct EntityList {
+typedef struct {
     char pad_0[0x2E];
     ushort capcity;
     ushort count;
     char pad_1[0x2];
     EntityRecord *pEntityRecords;
-};
+} EntityList;
 
-struct CameraData {
+typedef struct {
     Vec3 pos, fwd, up;
     char pad_0[0x4];
     float fov;
     char pad_1[0x5C];
     ushort viewportHeight, viewportWidth;
-};
+} CameraData;
 
-struct PlayerData {
+typedef struct {
 	uint entityHandle;
 	char pad_0[8];
 	float yaw;
@@ -71,36 +75,14 @@ struct PlayerData {
 	short zoomLevel;
 	char pad_2[2];
 	uint crosshairEntityHandle;
-};
+} PlayerData;
 
-struct Matrix13 {
+typedef struct {
     float w;
     Vec3 x, y, z, pos;
-};
+} Matrix13;
 
-struct EntityTraits {
-    uint living;
-    uint hostile;
-    uint numBones;
-};
-
-struct RaycastResult {
-    u_short hitType;
-    char pad_0[0x12];
-    float unknown_0;
-    Vec3 hit, normal;
-    char pad_1[0x8];
-    DWORD entityHandle;
-    u_short unknown_1;
-    u_short boneIndex;
-    char pad_2[0x10];
-};
-
-enum HitType {
-    HitType_Map = 0x2,
-    HitType_Entity = 0x3,
-    HitType_Nothing = 0xFFFF,
-};
+typedef Matrix13 Bone;
 
 enum EntityCategory {
     EntityCategory_Biped,
@@ -126,43 +108,65 @@ enum TypeID {
     TypeID_Hunter = 0x12E8,
 };
 
-EntityTraits getEntityTraits(EntityRecord record);
+typedef struct {
+    uint living;
+    uint hostile;
+    uint numBones;
+} EntityTraits;
 
-typedef uint (__cdecl *RaycastFunction)(DWORD flags, Vec3 *pRayOrigin, Vec3 *pRayDisplacement, DWORD sourceEntityHandle, RaycastResult *pResult);
-typedef std::vector<EntityRecord> Entities;
-typedef Matrix13 Bone;
+EntityTraits getEntityTraits(EntityRecord record) {
+    switch (record.typeId) {
+        #define CAST IF_C((EntityTraits))
+        case TypeID_Player:  return CAST{ 1, 0, 30 };
+        case TypeID_Marine:  return CAST{ 1, 0, 20 };
+        case TypeID_Grunt:   return CAST{ 1, 1, 17 };
+        case TypeID_Jackal:  return CAST{ 1, 1, 27 };
+        case TypeID_Elite:   return CAST{ 1, 1, 25 };
+        case TypeID_Hunter:  return CAST{ 1, 1, 30 };
+        default:             return CAST{ 0, 1, 0  };
+        #undef CAST
+    }
+}
 
 // Pointers
-extern EntityList** const ppEntityList;
-extern CameraData*  const pCamData;
-extern PlayerData*  const pPlayerData;
-extern const RaycastFunction raycast;
+EntityList **ppEntityList = (EntityList**) 0x008603B0;
+CameraData *pCamData      = (CameraData*)  0x00719BC8;
+PlayerData *pPlayerData   = (PlayerData*)  0x402AD4AC;
 
-inline EntityList* getpEntityList();
-int findEntityIndex(int address);
-EntityRecord getRecord(int handle);
-void getValidEntityRecords(Entities * pList);
-void raycastPlayerCrosshair(RaycastResult* pRcResult, DWORD flags);
-Entity* getPlayerPointer();
+const uint entityBoneListOffset = 0x550;
 
-namespace Skeleton {
+inline EntityList* getpEntityList() {
+    return *ppEntityList;
+}
 
-    #define HUNTER_TORSO_INDEX 3
-    #define JACKAL_SHIELD_INDEX 26
-    #define PEN_UP -1
-    #define PEN_END -2
-    #define SMALL_UNIT 0.0125f
+int findEntityIndex(int address) {
+    EntityList* entityList = getpEntityList();
+    for (int i = 0; i < entityList->capcity; i++) {
+        EntityRecord record = entityList->pEntityRecords[i];
+        if ((int)record.pEntity == address)
+            return i;
+    }
+    return 0;
+}
 
-    struct BoneOffset {
-        int boneIndex;
-        Vec3 offset;
-    };
+EntityRecord getRecord(int handle) {
+    int index = handle & 0xFFFF;
+    EntityList* entityList = getpEntityList();
+    return entityList->pEntityRecords[index];
+}
 
-    int* getEntitySkeleton(EntityRecord record);
-    BoneOffset getHeadOffset(EntityRecord record);
-    Vec3 boneOffsetToWorld(Entity* pEntity, BoneOffset boneOff);
-    BoneOffset worldToBoneOffset(Entity* pEntity, int boneIndex, Vec3 worldPos);
-    Vec3 getHeadPos(EntityRecord record);
-    Bone* getBonePointer(Entity* pEntity, uint index);
+// EntityRecord* getRecordPointer(int handle) {
+//     if (!handle || handle == NULL_ENTITY_HANDLE)
+//         return nullptr;
+//     int index = handle & 0xFFFF;
+//     EntityList* entityList = getpEntityList();
+//     EntityRecord* result = &entityList->pEntityRecords[index];
+//     if (!result->pEntity)
+//         return nullptr;
+//     return result;
+// }
 
+Bone* getBonePointer(Entity* pEntity, uint index) {
+    uint address = ((uint)pEntity) + entityBoneListOffset + index * sizeof(Bone);
+    return (Bone*)address;
 }

@@ -1,4 +1,9 @@
-#include "debugdraw.h"
+#include "drawing.h"
+// #include <algorithm>
+
+#pragma once
+
+typedef unsigned char uchar;
 
 namespace {
 
@@ -58,6 +63,7 @@ namespace DebugDraw {
             *pAlpha = (uchar)(*pAlpha * s);
             if (l.expirationTick > now)
                 Drawing::drawThickLine3D(l.a, l.b, 0.005f, finalColor);
+                // Drawing::drawLine3D(l.a, l.b, finalColor);
         }
     }
     

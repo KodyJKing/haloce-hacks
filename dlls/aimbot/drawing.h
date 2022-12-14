@@ -1,16 +1,36 @@
-#include "drawing.h"
+#include "dllmain.h"
+#include "D3DVTABLE_INDEX.h"
+#include "vec3.h"
+#include "halo.h"
+
+#pragma once
 
 namespace Drawing {
+
+    // === Definitions ===
 
     // Found device location by backtracing a device method call.
     // Found device method using virtual table from dummy device.
     // https://gist.github.com/KodyJKing/d7b374b29998dfdd7d631430164f3e50
     IDirect3DDevice9** ppDevice = (IDirect3DDevice9**)0x0071D174;
 
+    struct ColoredVertex {
+        float x, y, z;
+        D3DCOLOR diffuse;
+    };
+
+    // === Vars ===
+
     IDirect3DDevice9* pDevice;
     LPD3DXFONT pFont;
     D3DXMATRIX identity;
     
+    // === Predeclarations ===
+
+    void getProjectionMatrix(D3DXMATRIX *pMat);
+    void getViewMatrix(D3DXMATRIX *pMat);
+    Vec3 worldToScreen(Vec3 v);
+
     // === Boilerplate ===
 
     void init() {
@@ -62,6 +82,11 @@ namespace Drawing {
     }
 
     // === Drawing Functions ===
+
+    struct Align {
+        char horizontal: 8;
+        char vertical: 8;
+    };
 
     void realign(long dir, long* lbound, long* ubound) {
         long delta = (long)( (1 - dir) / 2.0f * (*ubound - *lbound) );
