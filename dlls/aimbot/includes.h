@@ -17,4 +17,5 @@
 #define Naked __declspec( naked )
 
 typedef unsigned int uint;
+typedef unsigned char uchar;
 typedef unsigned short ushort;

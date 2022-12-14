@@ -1,8 +1,8 @@
 #pragma once
 
-#include "includes.h"
-#include "vec3.h"
-#include "halo.h"
+#include "../includes.h"
+#include "../vec3.h"
+#include "../halo.h"
 
 namespace Drawing {
 

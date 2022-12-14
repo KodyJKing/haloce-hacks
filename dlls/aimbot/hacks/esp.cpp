@@ -1,10 +1,4 @@
-#pragma once
-
-#include "includes.h"
-#include "halo.h"
-#include "drawing.h"
-#include "debugdraw.h"
-#include "util/keypressed.h"
+#include "esp.h"
 
 namespace ESP {
 

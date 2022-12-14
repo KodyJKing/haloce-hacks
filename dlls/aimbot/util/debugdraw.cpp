@@ -1,8 +1,4 @@
-#pragma once
-
-#include "drawing.h"
-
-typedef unsigned char uchar;
+#include "debugdraw.h"
 
 namespace {
 
@@ -13,9 +9,9 @@ namespace {
         DWORD expirationTick;
     };
 
-    extern const int bufferSize = 4096;
-    extern int writeHead = 0;
-    extern DebugLine lineBuffer[bufferSize] = {};
+    const int bufferSize = 4096;
+    int writeHead = 0;
+    DebugLine lineBuffer[bufferSize] = {};
     
     void addDebugLine(DebugLine line) {
         lineBuffer[writeHead++] = line;

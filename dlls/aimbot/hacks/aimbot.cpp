@@ -1,11 +1,4 @@
-#pragma once
-
-#include "includes.h"
-#include "halo.h"
-#include "drawing.h"
-#include "debugdraw.h"
-#include "util/keypressed.h"
-#include "util/input.h"
+#include "aimbot.h"
 
 namespace Aimbot {
 

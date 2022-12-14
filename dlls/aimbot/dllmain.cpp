@@ -1,13 +1,13 @@
 #include "dllmain.h"
+#include "halo.h"
+#include "util/drawing.h"
+#include "util/debugdraw.h"
 #include "util/D3DVTABLE_INDEX.h"
 #include "util/keypressed.h"
 #include "util/hook.h"
-#include "halo.h"
-#include "drawing.h"
-#include "debugdraw.h"
-#include "aimbot.h"
-#include "esp.h"
-#include "timehack.h"
+#include "hacks/aimbot.h"
+#include "hacks/esp.h"
+#include "hacks/timehack.h"
 
 HMODULE myHModule;
 VTableHook endSceneHookRecord;
