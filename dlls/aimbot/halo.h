@@ -153,17 +153,6 @@ EntityRecord getRecord(int handle) {
     return entityList->pEntityRecords[index];
 }
 
-// EntityRecord* getRecordPointer(int handle) {
-//     if (!handle || handle == NULL_ENTITY_HANDLE)
-//         return nullptr;
-//     int index = handle & 0xFFFF;
-//     EntityList* entityList = getpEntityList();
-//     EntityRecord* result = &entityList->pEntityRecords[index];
-//     if (!result->pEntity)
-//         return nullptr;
-//     return result;
-// }
-
 Bone* getBonePointer(Entity* pEntity, uint index) {
     static const uint entityBoneListOffset = 0x550;
     uint address = ((uint)pEntity) + entityBoneListOffset + index * sizeof(Bone);

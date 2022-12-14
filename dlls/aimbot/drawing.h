@@ -1,5 +1,5 @@
 #include "dllmain.h"
-#include "D3DVTABLE_INDEX.h"
+// #include "util/D3DVTABLE_INDEX.h"
 #include "vec3.h"
 #include "halo.h"
 

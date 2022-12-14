@@ -15,3 +15,6 @@
 
 #define DllExport __declspec( dllexport )
 #define Naked __declspec( naked )
+
+typedef unsigned int uint;
+typedef unsigned short ushort;

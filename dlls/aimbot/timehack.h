@@ -1,7 +1,7 @@
 #pragma once
 
 #include "includes.h"
-#include "hook.h"
+#include "util/hook.h"
 #include "vec3.h"
 #include "haloex.h"
 

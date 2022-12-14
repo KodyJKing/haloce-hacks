@@ -1,6 +1,7 @@
 #include "dllmain.h"
+#include "util/D3DVTABLE_INDEX.h"
 #include "util/keypressed.h"
-#include "hook.h"
+#include "util/hook.h"
 #include "haloex.h"
 #include "drawing.h"
 #include "debugdraw.h"
@@ -52,7 +53,6 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
             if (GetAsyncKeyState(VK_F9))
                 break;
             endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
-            // rehookVTable(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
             Sleep(16);
         }
     }
