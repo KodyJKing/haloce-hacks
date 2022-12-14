@@ -15,57 +15,60 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dllmain.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3DVTABLE_INDEX.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hook.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debugdraw.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="drawing.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="halo.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="haloex.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vec3.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="aimbot.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="esp.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="includes.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="timehack.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\input.h">
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\keypressed.h">
+    <ClInclude Include="**\*.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="**\*.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="**\*.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util\input.cpp">
+    <ClCompile Include="**\*.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util\keypressed.cpp">
+    <ClCompile Include="**\*.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

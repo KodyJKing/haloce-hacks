@@ -3,7 +3,7 @@
 #include "includes.h"
 #include "util/hook.h"
 #include "vec3.h"
-#include "haloex.h"
+#include "halo.h"
 
 namespace TimeHack {
 

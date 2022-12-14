@@ -2,7 +2,6 @@
 
 #include "includes.h"
 #include "halo.h"
-#include "haloex.h"
 #include "drawing.h"
 #include "debugdraw.h"
 #include "util/keypressed.h"
@@ -15,7 +14,7 @@ namespace ESP {
     }
 
     void renderBoneFrame(Bone* pBone) {
-            const float scale = Skeleton::SMALL_UNIT;
+            const float scale = SMALL_UNIT;
             
             Vec3 pos, x, y, z;
             pos = pBone->pos;
@@ -36,7 +35,7 @@ namespace ESP {
         Entity* pEntity = record.pEntity;
         
         for (uint i = 0; i < traits.numBones; i++) {
-            Bone* pBone = getBonePointer(pEntity, i);
+            Bone* pBone = Skeleton::getBonePointer(pEntity, i);
             bool highLightBone = highlight && i == highlightIndex;
             if (Options::showNumbers)
                 renderBoneNumber(pBone, i, highLightBone ? 0xFFFFFF00 : 0xFFFFFFFF);
@@ -55,9 +54,9 @@ namespace ESP {
         for (int i = 1; i < 64; i++) {
 
             int index = skeleton[i];
-            if (index == Skeleton::END) {
+            if (index == PEN_END) {
                 break;
-            } else if (index == Skeleton::UP) {
+            } else if (index == PEN_UP) {
                 i++; // Pick the "pen" up.
             } else {
                 int previousI = i - 1;
@@ -65,8 +64,8 @@ namespace ESP {
                     continue; // Don't put "pen" back down until we have a pair of valid bone indices.
                     
                 int index2 = skeleton[previousI];
-                Vec3 pos = getBonePointer(pEntity, index)->pos;
-                Vec3 pos2 = getBonePointer(pEntity, index2)->pos;
+                Vec3 pos = Skeleton::getBonePointer(pEntity, index)->pos;
+                Vec3 pos2 = Skeleton::getBonePointer(pEntity, index2)->pos;
 
                 D3DCOLOR defaultColor = 0x40888888;
                 D3DCOLOR highlightColor = 0xFFFFFF00;
@@ -158,7 +157,7 @@ namespace ESP {
         RaycastResult result;
         Vec3 displacement = pos - camPos;
         raycast(
-            traceProjectileRaycastFlags,
+            PROJECTILE_RAYCAST_FLAGS,
             &camPos, &displacement,
             pPlayerData->entityHandle,
             &result
@@ -197,7 +196,7 @@ namespace ESP {
         getValidEntityRecords(&entities);
 
         RaycastResult rcResult;
-        raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
+        raycastPlayerCrosshair(&rcResult, PROJECTILE_RAYCAST_FLAGS);
 
         EntityRecord entityUnderCrosshair = {};
         if ( rcResult.hitType == HitType_Entity )

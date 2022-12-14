@@ -2,7 +2,7 @@
 #include "util/D3DVTABLE_INDEX.h"
 #include "util/keypressed.h"
 #include "util/hook.h"
-#include "haloex.h"
+#include "halo.h"
 #include "drawing.h"
 #include "debugdraw.h"
 #include "aimbot.h"
@@ -105,7 +105,7 @@ void checkOptionToggles() {
 
 void teleportToCrosshair() {
     RaycastResult rcResult = {};
-    raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
+    raycastPlayerCrosshair(&rcResult, PROJECTILE_RAYCAST_FLAGS);
     if (rcResult.hitType != HitType_Nothing) {
         Entity* pPlayer = getPlayerPointer();
         pPlayer->pos = rcResult.hit - pCamData->fwd * 1.0f;

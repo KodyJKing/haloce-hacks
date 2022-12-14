@@ -2,7 +2,6 @@
 
 #include "includes.h"
 #include "halo.h"
-#include "haloex.h"
 #include "drawing.h"
 #include "debugdraw.h"
 #include "util/keypressed.h"
@@ -76,10 +75,10 @@ namespace Aimbot {
 
     float getTargetScore(Target target) {
         if ( target.entityRec.typeId == TypeID_Jackal
-            && target.boneOffset.boneIndex == Skeleton::jackalShieldIndex )
+            && target.boneOffset.boneIndex == JACKAL_SHIELD_INDEX )
             return 0.0f;
         if ( target.entityRec.typeId == TypeID_Hunter
-            && target.boneOffset.boneIndex != Skeleton::hunterTorsoIndex )
+            && target.boneOffset.boneIndex != HUNTER_TORSO_INDEX )
             return 0.0f;
 
         float shield = target.entityRec.pEntity->shield;
@@ -162,7 +161,7 @@ namespace Aimbot {
                     
                     if (i > 0) {
                         float drift = isPreviousTarget ? 1.0f : 15.0f;
-                        randomizeTarget(&targetPrime, Skeleton::SMALL_UNIT * drift);
+                        randomizeTarget(&targetPrime, SMALL_UNIT * drift);
                     }
                     
                     if (!updateTargetIfOcluded(&targetPrime))
