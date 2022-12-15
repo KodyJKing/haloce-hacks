@@ -148,7 +148,8 @@ namespace Aimbot {
 
             BoneOffset headBoneOffset = Skeleton::getHeadOffset(record);
 
-            for (uint j = 0; j < getEntityTraits(record).numBones; j++ ) {
+            uint boneCount = getBoneCount(record.pEntity);
+            for (uint j = 0; j < boneCount; j++ ) {
 
                 bool isHead = j == headBoneOffset.boneIndex;
                 BoneOffset boneOffset = isHead ? headBoneOffset : BoneOffset{ (int)j, {0, 0, 0} };

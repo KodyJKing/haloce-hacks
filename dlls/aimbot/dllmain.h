@@ -25,7 +25,7 @@ void cleanupHooks();
 namespace Options {
     DllExport bool aimbot          = false;
     DllExport bool esp             = true;
-    DllExport bool timeHack        = true;
+    DllExport bool timeHack        = false;
     DllExport bool freezeTime      = false;
     DllExport bool showLines       = true;
     DllExport bool showNumbers     = false;
@@ -39,7 +39,4 @@ namespace Options {
     DllExport bool showLabels      = false;
     DllExport bool fullAuto        = false;
 }
-// extern std::unordered_map<std::string, bool> options;
-// #define DECLARE_OPTION(name, value) options[#name] = value;
-// #define OPTION(name) options[#name]
 // ===============

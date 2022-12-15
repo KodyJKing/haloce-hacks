@@ -121,9 +121,10 @@ void onSceneEnd() {
 
     ESP::render();
     Aimbot::update();
+    TimeHack::update();
 
-    // if( keypressed('C') )
-    //     teleportToCrosshair();
+    if( keypressed('C') )
+        teleportToCrosshair();
 
     if ( keypressed(VK_F5) )
         TimeHack::doSingleStep = true;

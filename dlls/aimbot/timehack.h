@@ -5,6 +5,10 @@
 
 namespace TimeHack {
 
+    // Used to allow a selected entity to update despite freeze.
+    DWORD allowUpdateHandle;
+    DWORD allowUpdateUntil;
+
     float getTimescale(DWORD entityHandle) {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
@@ -79,8 +83,9 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
+        bool isSelected = entityHandle == allowUpdateHandle && GetTickCount() < allowUpdateUntil;
         
-        if (!Options::freezeTime || doSingleStep)
+        if (!Options::freezeTime || doSingleStep || isSelected)
             return true;
             
         EntityRecord rec = getRecord(entityHandle);
@@ -119,9 +124,16 @@ namespace TimeHack {
         auto hook = addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE);
         updateEntityHook_trampolineReturn = hook.trampolineReturn;
 
-        // addJumpCallHook("PreUpdateEntity", 0x004F4000U, 6, (DWORD) preUpdateEntity);
-
         addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
+    }
+
+    void update() {
+        if ( GetAsyncKeyState('U') ) {
+            RaycastResult result;
+            raycastPlayerCrosshair(&result, traceProjectileRaycastFlags);
+            allowUpdateHandle = result.entityHandle;
+            allowUpdateUntil = GetTickCount() + 500;
+        }
     }
 
 }

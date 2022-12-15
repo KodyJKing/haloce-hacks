@@ -36,7 +36,8 @@ namespace ESP {
         EntityTraits traits = getEntityTraits(record);
         Entity* pEntity = record.pEntity;
         
-        for (uint i = 0; i < traits.numBones; i++) {
+        uint boneCount = getBoneCount(pEntity);
+        for (uint i = 0; i < boneCount; i++) {
             Bone* pBone = getBonePointer(pEntity, i);
             bool highLightBone = highlight && i == highlightIndex;
             if (Options::showNumbers)
@@ -179,7 +180,7 @@ namespace ESP {
         LINE("%04X %04X", pRecord->typeId, pRecord->unknown_2);
         LINE("%04X %04X", pRecord->id,  pRecord->unknown_1);
         LINE("@%08X", (DWORD) pEntity);
-        LINE("#%08X", pEntity->tag);
+        LINE("#%08X", pEntity->tagHandle);
 
         #undef LINE
 
@@ -206,14 +207,32 @@ namespace ESP {
 
         Drawing::enableDepthTest(false);
         for (auto record : entities) {
-            bool alive = record.pEntity->health > 0.0f;
-            bool highlight = entityUnderCrosshair.pEntity == record.pEntity;
+            auto pEntity = record.pEntity;
+
+            auto cat = pEntity->entityCategory;
+            if (
+                cat != EntityCategory_Biped &&
+                cat != EntityCategory_Equipment &&
+                cat != EntityCategory_Projectile &&
+                cat != EntityCategory_Vehicle &&
+                cat != EntityCategory_Weapon
+            )
+                continue;
 
             if (Options::showLabels)
                 renderEntityInfo(&record);
             
-            if (!alive)
+            auto traits = getEntityTraits(record);
+            bool alive = pEntity->health > 0.0f;
+            bool dead = traits.living && !alive;
+
+            if (dead)
                 continue;
+
+            if (pEntity->parentEntityHandle == pPlayerData->entityHandle)
+                continue;
+                
+            bool highlight = entityUnderCrosshair.pEntity == pEntity;
 
             if (Options::showLines)
                 renderSkeleton(record, highlight, rcResult.boneIndex);

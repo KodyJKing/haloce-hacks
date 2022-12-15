@@ -1,52 +1,39 @@
 #pragma once
 
-#ifdef __cplusplus
-    #define IF_C(x)
-#else
-    #define IF_C(x) x
-#endif
-
-#include "vec3.h"
-
 #define NULL_ENTITY_HANDLE 0xFFFFFFFF
 
 typedef unsigned int uint;
-typedef unsigned char uchar;
 typedef unsigned short ushort;
 
+typedef struct { float x, y, z; } Vec3;
+
 typedef struct {
-    // Created with ReClass.NET 1.2 by KN4CK3R
-	uint32_t tagHandle; //0x0000
-	char pad_0004[88]; //0x0004
-	Vec3 pos; //0x005C
-	Vec3 velocity; //0x0068
-	char pad_0074[44]; //0x0074
-	Vec3 eyePos; //0x00A0
-	char pad_00AC[8]; //0x00AC
-	ushort entityCategory; //0x00B4
-	char pad_00B6[42]; //0x00B6
-	float health; //0x00E0
-	float shield; //0x00E4
-	char pad_00E8[44]; //0x00E8
-	uint vehicleEntityHandle; //0x0114
-	uint childEntityHandle; //0x0118
-	uint parentEntityHandle; //0x011C
-	char pad_0120[208]; //0x0120
-	ushort numBoneBytes; //0x01F0
-	ushort bonesOffset; //0x01F2
-	char pad_01F4[60]; //0x01F4
-	Vec3 lookDir; //0x0230
-	char pad_023C[4]; //0x023C
-	float fuse; //0x0240
-	char pad_0244[4]; //0x0244
-	float projectileAge; //0x0248
-	float projectileAgeRate; //0x024C
-	char pad_0250[204]; //0x0250
-	uchar N0000010E; //0x031C
-	uchar N00000130; //0x031D
-	uchar frags; //0x031E
-	uchar plasmas; //0x031F
-} Entity; //Size: 0x0320
+	// Created with ReClass.NET 1.2 by KN4CK3R
+    uint tag;
+	char pad_0000[88];
+	Vec3 pos, velocity; 
+	char pad_0068[44];  
+	Vec3 eyePos;
+	char pad_00AC[8];
+	ushort entityCategory;
+	char pad_00B6[42];
+	float health;
+	float shield;
+	char pad_00E8[44];
+	uint vehicleEntityHandle;
+	uint childEntityHandle;
+	uint parentEntityHandle;
+	char pad_0120[272];
+	Vec3 lookDir;       
+	char pad_023C[4];
+	float fuse;
+	char pad_0244[4];
+	float projectileAge;
+	float projectileAgeRate;
+	// char pad_0250[214];
+	// char frags;         
+	// char plasmas;       
+} Entity;
 
 typedef struct {
     ushort id;
@@ -122,15 +109,13 @@ typedef struct {
 
 EntityTraits getEntityTraits(EntityRecord record) {
     switch (record.typeId) {
-        #define CAST IF_C((EntityTraits))
-        case TypeID_Player:  return CAST{ 1, 0 };
-        case TypeID_Marine:  return CAST{ 1, 0 };
-        case TypeID_Grunt:   return CAST{ 1, 1 };
-        case TypeID_Jackal:  return CAST{ 1, 1 };
-        case TypeID_Elite:   return CAST{ 1, 1 };
-        case TypeID_Hunter:  return CAST{ 1, 1 };
-        default:             return CAST{ 0, 1 };
-        #undef CAST
+        case TypeID_Player:  return (EntityTraits){ 1, 0 };
+        case TypeID_Marine:  return (EntityTraits){ 1, 0 };
+        case TypeID_Grunt:   return (EntityTraits){ 1, 1 };
+        case TypeID_Jackal:  return (EntityTraits){ 1, 1 };
+        case TypeID_Elite:   return (EntityTraits){ 1, 1 };
+        case TypeID_Hunter:  return (EntityTraits){ 1, 1 };
+        default:             return (EntityTraits){ 0, 1 };
     }
 }
 
@@ -138,6 +123,8 @@ EntityTraits getEntityTraits(EntityRecord record) {
 EntityList **ppEntityList = (EntityList**) 0x008603B0;
 CameraData *pCamData      = (CameraData*)  0x00719BC8;
 PlayerData *pPlayerData   = (PlayerData*)  0x402AD4AC;
+
+const uint entityBoneListOffset = 0x550;
 
 inline EntityList* getpEntityList() {
     return *ppEntityList;
@@ -159,11 +146,7 @@ EntityRecord getRecord(int handle) {
     return entityList->pEntityRecords[index];
 }
 
-uint getBoneCount(Entity* pEntity) {
-    return pEntity->numBoneBytes / (13 * 4);
-}
-
 Bone* getBonePointer(Entity* pEntity, uint index) {
-    uint address = ((uint)pEntity) + pEntity->bonesOffset + index * sizeof(Bone);
+    uint address = ((uint)pEntity) + entityBoneListOffset + index * sizeof(Bone);
     return (Bone*)address;
 }
