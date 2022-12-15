@@ -9,8 +9,8 @@ namespace TimeHack {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
         EntityRecord record = getRecord(entityHandle);
-        // if (record.typeId == 0x02E4)
-        //     return 0.01f;
+        if (record.typeId == 0x02E4)
+            return 0.01f;
         return 0.1f;
     }
 
@@ -33,7 +33,7 @@ namespace TimeHack {
         oldVel = pEntity->velocity;
         oldParentEntityHandle = pEntity->parentEntityHandle;
 
-        if (false && pEntity->entityCategory == EntityCategory_Projectile) {
+        if (pEntity->entityCategory == EntityCategory_Projectile) {
             oldAge = pEntity->projectileAge;
             oldFuse = pEntity->fuse;
 
@@ -56,7 +56,7 @@ namespace TimeHack {
         Vec3 newVel = pEntity->velocity;
         Vec3 deltaVel;
 
-        if (false && pEntity->entityCategory == EntityCategory_Projectile) {
+        if (pEntity->entityCategory == EntityCategory_Projectile) {
             float newAge = pEntity->projectileAge;
             float deltaAge = newAge - oldAge;
             pEntity->projectileAge = oldAge + deltaAge * timescale;
@@ -79,6 +79,7 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
+        
         if (!Options::freezeTime || doSingleStep)
             return true;
             

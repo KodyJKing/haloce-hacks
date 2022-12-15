@@ -122,8 +122,8 @@ void onSceneEnd() {
     ESP::render();
     Aimbot::update();
 
-    if( keypressed('C') )
-        teleportToCrosshair();
+    // if( keypressed('C') )
+    //     teleportToCrosshair();
 
     if ( keypressed(VK_F5) )
         TimeHack::doSingleStep = true;
@@ -138,11 +138,55 @@ HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
     onSceneEnd();
     auto result = ((EndSceneFunc)endSceneHookRecord.oldMethod)(pThisDevice);
     return result;
- }
+}
+
+namespace FullAutoHook {
+    DWORD hookAddress = 0x004C4914;
+    DWORD numStolenBytes = 8;
+    DWORD hookReturn = hookAddress + numStolenBytes;
+    DWORD tranpolineReturn, entityHandle;
+
+    bool shouldGetFullAuto(DWORD entityHandle) {
+        return getRecord(entityHandle).typeId == TypeID_Player;
+    }
+
+    Naked void hookFunc() {
+        __asm {
+            pushad
+            pushfd
+            mov eax, [esp+0x38+PUSHSTATE_BYTES]
+            mov [entityHandle], eax
+        }
+        if ( Options::fullAuto && shouldGetFullAuto(entityHandle) ) {
+            __asm {
+                popfd
+                popad
+                jmp [hookReturn]
+            }
+        }
+        __asm {
+            popfd
+            popad
+            jmp [tranpolineReturn];
+        }
+    }
+
+    void setup() {
+        addJumpHook(
+            "FullAuto",
+            FullAutoHook::hookAddress,
+            FullAutoHook::numStolenBytes,
+            (DWORD) FullAutoHook::hookFunc,
+            HK_JUMP | HK_STOLEN_AFTER,
+            &FullAutoHook::tranpolineReturn
+        );
+    }
+}
 
 void setupHooks() {
     void** vTable = Drawing::getDeviceVirtualTable();
     endSceneHookRecord = addVTableHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
+    FullAutoHook::setup();
 }
 
 void cleanupHooks() {

@@ -23,20 +23,21 @@ void cleanupHooks();
 
 // === Options ===
 namespace Options {
-    bool aimbot          = false;
-    bool esp             = true;
-    bool timeHack        = true;
-    bool freezeTime      = false;
-    bool showLines       = true;
-    bool showNumbers     = false;
-    bool showFrames      = true;
-    bool showHead        = false;
-    bool smoothTargeting = true;
-    bool showAxes        = true;
-    bool showLookingAt   = true;
-    bool triggerbot      = false;
-    bool smartTargeting  = false;
-    bool showLabels      = false;
+    DllExport bool aimbot          = false;
+    DllExport bool esp             = true;
+    DllExport bool timeHack        = true;
+    DllExport bool freezeTime      = false;
+    DllExport bool showLines       = true;
+    DllExport bool showNumbers     = false;
+    DllExport bool showFrames      = true;
+    DllExport bool showHead        = false;
+    DllExport bool smoothTargeting = true;
+    DllExport bool showAxes        = true;
+    DllExport bool showLookingAt   = true;
+    DllExport bool triggerbot      = false;
+    DllExport bool smartTargeting  = false;
+    DllExport bool showLabels      = false;
+    DllExport bool fullAuto        = false;
 }
 // extern std::unordered_map<std::string, bool> options;
 // #define DECLARE_OPTION(name, value) options[#name] = value;

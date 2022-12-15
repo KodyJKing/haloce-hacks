@@ -7,3 +7,4 @@ dlls/Debug
 dlls/*/Debug
 dlls/x64
 tmp
+pointerScans

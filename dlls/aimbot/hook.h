@@ -60,7 +60,9 @@ void removeAllVTableHooks() {
 //#region Jump Jooks
 
 #define GET_DWORD_REG(name, reg) DWORD name; __asm { mov [name], reg }
+#define GET_DWORD_REG_GLOBAL(name, reg) __asm { mov [name], reg }
 #define POPSTATE_AND_RETURN __asm popad __asm popfd __asm ret
+#define PUSHSTATE_BYTES 0x24
 
 // === Opcodes =======
 #define CALL   '\xE8'
@@ -71,6 +73,7 @@ void removeAllVTableHooks() {
 #define PUSHAD '\x60'
 #define POPAD  '\x61'
 // ===================
+
 
 // === Buffer Writing ===
 inline void writeBytes(char** pDest, char* src, size_t count) {
@@ -186,7 +189,7 @@ std::vector<JumpHook> jumpHookRecords;
 // ===============================
 
 JumpHook addJumpHook(
-    const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, DWORD flags
+    const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, DWORD flags, DWORD* returnAddress
 ) {
     JumpHook record = { description, address, numStolenBytes };
 
@@ -215,6 +218,9 @@ JumpHook addJumpHook(
         record.writeStolenBytes(&head);
 
     record.writeReturnJump(&head);
+
+    if (returnAddress != nullptr)
+        *returnAddress = record.trampolineReturn;
     // =============================
 
     record.protectTrampoline();
@@ -224,6 +230,12 @@ JumpHook addJumpHook(
 
     jumpHookRecords.push_back(record);
     return record;
+}
+
+JumpHook addJumpHook(
+    const char* description, DWORD address, size_t numStolenBytes, DWORD hookFunc, DWORD flags
+) {
+    return addJumpHook(description, address, numStolenBytes, hookFunc, flags, nullptr);
 }
 
 void removeAllJumpHookRecords() {
