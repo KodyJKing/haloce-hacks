@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-    #define IF_C(x)
-#else
-    #define IF_C(x) x
-#endif
-
 #include "vec3.h"
 
 #define NULL_ENTITY_HANDLE 0xFFFFFFFF
@@ -16,7 +10,7 @@ typedef unsigned short ushort;
 
 typedef struct {
     // Created with ReClass.NET 1.2 by KN4CK3R
-	uint32_t tagHandle; //0x0000
+	uint tagHandle; //0x0000
 	char pad_0004[88]; //0x0004
 	Vec3 pos; //0x005C
 	Vec3 velocity; //0x0068
@@ -24,7 +18,10 @@ typedef struct {
 	Vec3 eyePos; //0x00A0
 	char pad_00AC[8]; //0x00AC
 	ushort entityCategory; //0x00B4
-	char pad_00B6[42]; //0x00B6
+	char pad_00B6[26]; //0x00B6
+	ushort animId; //0x00D0
+	ushort animFrame; //0x00D2
+	char pad_00D4[12]; //0x00D4
 	float health; //0x00E0
 	float shield; //0x00E4
 	char pad_00E8[44]; //0x00E8
@@ -122,15 +119,13 @@ typedef struct {
 
 EntityTraits getEntityTraits(EntityRecord record) {
     switch (record.typeId) {
-        #define CAST IF_C((EntityTraits))
-        case TypeID_Player:  return CAST{ 1, 0 };
-        case TypeID_Marine:  return CAST{ 1, 0 };
-        case TypeID_Grunt:   return CAST{ 1, 1 };
-        case TypeID_Jackal:  return CAST{ 1, 1 };
-        case TypeID_Elite:   return CAST{ 1, 1 };
-        case TypeID_Hunter:  return CAST{ 1, 1 };
-        default:             return CAST{ 0, 1 };
-        #undef CAST
+        case TypeID_Player:  return { 1, 0 };
+        case TypeID_Marine:  return { 1, 0 };
+        case TypeID_Grunt:   return { 1, 1 };
+        case TypeID_Jackal:  return { 1, 1 };
+        case TypeID_Elite:   return { 1, 1 };
+        case TypeID_Hunter:  return { 1, 1 };
+        default:             return { 0, 1 };
     }
 }
 

@@ -9,7 +9,6 @@
 #include "timehack.h"
 
 HMODULE myHModule;
-VTableHook endSceneHookRecord;
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
@@ -51,7 +50,7 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
         while (TRUE) {
             if (GetAsyncKeyState(VK_F9))
                 break;
-            endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
+            // endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
             // rehookVTable(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
             Sleep(16);
         }
@@ -133,14 +132,6 @@ void onSceneEnd() {
 
 // === Hooks ======
 
-// EndScene hook
-typedef HRESULT(_stdcall* EndSceneFunc)(IDirect3DDevice9* pThisDevice);
-HRESULT __stdcall endSceneHook( IDirect3DDevice9* pThisDevice ) {
-    onSceneEnd();
-    auto result = ((EndSceneFunc)endSceneHookRecord.oldMethod)(pThisDevice);
-    return result;
-}
-
 namespace FullAutoHook {
     DWORD hookAddress = 0x004C4914;
     DWORD numStolenBytes = 8;
@@ -185,8 +176,7 @@ namespace FullAutoHook {
 }
 
 void setupHooks() {
-    void** vTable = Drawing::getDeviceVirtualTable();
-    endSceneHookRecord = addVTableHook("EndScene", vTable, D3DVTABLE_INDEX::iEndScene, endSceneHook);
+    addJumpHook("End Scene", 0x005180A8, 5, (DWORD) onSceneEnd, HK_PUSH_STATE);
     FullAutoHook::setup();
 }
 

@@ -5,6 +5,9 @@
 
 namespace TimeHack {
 
+    float walkingSpeed = 0.07f;
+    float speedDeadzone = 0.005f;
+
     // Used to allow a selected entity to update despite freeze.
     DWORD allowUpdateHandle;
     DWORD allowUpdateUntil;
@@ -12,17 +15,27 @@ namespace TimeHack {
     float getTimescale(DWORD entityHandle) {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
+
+        auto pPlayer = getPlayerPointer();
+        float playerSpeed = pPlayer->velocity.length();
+        float s = playerSpeed / walkingSpeed;
+
         EntityRecord record = getRecord(entityHandle);
-        if (record.typeId == 0x02E4)
-            return 0.01f;
-        return 0.1f;
+        // if (record.typeId == 0x02E4)
+        //     return s * 0.1f;
+        return s;
     }
 
+    DWORD playerFrameCount = 0;
     DWORD updatingEntityHandle, oldParentEntityHandle;
     Vec3 oldPos, oldVel;
     float oldAge, oldFuse;
+    ushort oldAnimFrame;
     void preUpdateEntity(DWORD entityHandle) {
         // GET_DWORD_REG(entityHandle, ebx);
+
+        if (entityHandle == pPlayerData->entityHandle)
+            playerFrameCount++;
         
         if (!Options::timeHack) return;
 
@@ -36,6 +49,7 @@ namespace TimeHack {
         oldPos = pEntity->pos;
         oldVel = pEntity->velocity;
         oldParentEntityHandle = pEntity->parentEntityHandle;
+        oldAnimFrame = pEntity->animFrame;
 
         if (pEntity->entityCategory == EntityCategory_Projectile) {
             oldAge = pEntity->projectileAge;
@@ -60,6 +74,17 @@ namespace TimeHack {
         Vec3 newVel = pEntity->velocity;
         Vec3 deltaVel;
 
+        ushort newAnimFrame = pEntity->animFrame;
+        ushort deltaAnimFrame = newAnimFrame - oldAnimFrame;
+        if (deltaAnimFrame == 1) {
+            ushort framesToAdd = (ushort) floorf(deltaAnimFrame * timescale);
+            float lostFrames = deltaAnimFrame * timescale - framesToAdd;
+            float u = (float) rand() / RAND_MAX;
+            if (u < lostFrames)
+                framesToAdd++;
+            pEntity->animFrame = oldAnimFrame + framesToAdd;
+        }
+
         if (pEntity->entityCategory == EntityCategory_Projectile) {
             float newAge = pEntity->projectileAge;
             float deltaAge = newAge - oldAge;
@@ -81,30 +106,28 @@ namespace TimeHack {
 
     }
 
+    bool isPlayerControlled(DWORD entityHandle) {
+        EntityRecord rec = getRecord(entityHandle);
+        Entity* pPlayer = getPlayerPointer();
+        return
+            entityHandle == pPlayer->childEntityHandle ||
+            entityHandle == pPlayer->parentEntityHandle ||
+            entityHandle == pPlayer->vehicleEntityHandle ||
+            rec.typeId == TypeID_Player;
+    }
+
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
         bool isSelected = entityHandle == allowUpdateHandle && GetTickCount() < allowUpdateUntil;
-        
-        if (!Options::freezeTime || doSingleStep || isSelected)
-            return true;
-            
-        EntityRecord rec = getRecord(entityHandle);
-        if (!rec.pEntity)
-            return true;
 
         Entity* pPlayer = getPlayerPointer();
-        if (
-            entityHandle == pPlayer->childEntityHandle ||
-            entityHandle == pPlayer->parentEntityHandle ||
-            entityHandle == pPlayer->vehicleEntityHandle
-        )
-            return true;
+        bool isPlayerDeadzoneSpeed = pPlayer->velocity.length() < speedDeadzone;
+        bool shouldAnythingFreeze = Options::freezeTime || Options::timeHack && isPlayerDeadzoneSpeed;
         
-        // EntityTraits traits = getEntityTraits(rec);
-        // if (!traits.living)
-        //     return true;
-
-        return rec.typeId == TypeID_Player;
+        if (!shouldAnythingFreeze || doSingleStep || isSelected)
+            return true;
+            
+        return isPlayerControlled(entityHandle);
     }
 
     DWORD updateEntityHook_trampolineReturn;

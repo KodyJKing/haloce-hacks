@@ -141,6 +141,7 @@ dealloc(newmem)
             <CheatEntry>
               <ID>12</ID>
               <Description>"Projectile Count"</Description>
+              <LastState Value="89349" RealAddress="008C0010"/>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
               <Address>projectileCount</Address>
@@ -419,7 +420,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                 <CheatEntry>
                   <ID>68</ID>
                   <Description>"entityHandle"</Description>
-                  <LastState Value="009CFD80" RealAddress="009D0038"/>
+                  <LastState Value="0000000F" RealAddress="009D0038"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -435,7 +436,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                     <CheatEntry>
                       <ID>61</ID>
                       <Description>"x"</Description>
-                      <LastState Value="0" RealAddress="009D0018"/>
+                      <LastState Value="1.647575637E-34" RealAddress="009D0018"/>
                       <ShowAsSigned>1</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>raycastResult+18</Address>
@@ -451,7 +452,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                     <CheatEntry>
                       <ID>62</ID>
                       <Description>"z"</Description>
-                      <LastState Value="0" RealAddress="009D0020"/>
+                      <LastState Value="1.441857647E-38" RealAddress="009D0020"/>
                       <ShowAsSigned>1</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>raycastResult+20</Address>
@@ -476,7 +477,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                     <CheatEntry>
                       <ID>66</ID>
                       <Description>"y"</Description>
-                      <LastState Value="0" RealAddress="009D0028"/>
+                      <LastState Value="1.44181729E-38" RealAddress="009D0028"/>
                       <ShowAsSigned>1</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>raycastResult+28</Address>
@@ -603,7 +604,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>41</ID>
                       <Description>"x"</Description>
-                      <LastState Value="0" RealAddress="009C0000"/>
+                      <LastState Value="1.325670526E-38" RealAddress="009C0000"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement</Address>
@@ -611,7 +612,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>42</ID>
                       <Description>"y"</Description>
-                      <LastState Value="0" RealAddress="009C0004"/>
+                      <LastState Value="4.203895393E-45" RealAddress="009C0004"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+04</Address>
@@ -619,7 +620,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>43</ID>
                       <Description>"z"</Description>
-                      <LastState Value="0" RealAddress="009C0008"/>
+                      <LastState Value="5.605193857E-45" RealAddress="009C0008"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+08</Address>
@@ -1272,6 +1273,7 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>35</ID>
                   <Description>"Value to render"</Description>
+                  <LastState Value="00015D3F" RealAddress="008C0020"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -1430,7 +1432,7 @@ tryInjectDll(memrec)
         <CheatEntry>
           <ID>81</ID>
           <Description>"Invincibility"</Description>
-          <LastState/>
+          <LastState Activated="1"/>
           <VariableType>Auto Assembler Script</VariableType>
           <AssemblerScript>{ Game   : halo.exe
   Version: 
@@ -1532,6 +1534,81 @@ db FE 8C 38 1E 03 00 00
           </Hotkeys>
         </CheatEntry>
         <CheatEntry>
+          <ID>106</ID>
+          <Description>"Blind AI"</Description>
+          <LastState Activated="1"/>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : halo.exe
+  Version: 
+  Date   : 2022-12-15
+  Author : Kody
+
+  This script does blah blah blah
+}
+
+define(address,"halo.exe"+2B2FA)
+define(bytes,83 C4 14 84 C0)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  add esp,14
+  //test al,al
+  mov eax,0
+  cmp eax,1
+  jmp return
+
+address:
+  jmp newmem
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // add esp,14
+  // test al,al
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: 0042B2FA
+
+0042B2DE: D9 46 04                    - fld dword ptr [esi+04]
+0042B2E1: 51                          - push ecx
+0042B2E2: D8 67 04                    - fsub dword ptr [edi+04]
+0042B2E5: 57                          - push edi
+0042B2E6: 55                          - push ebp
+0042B2E7: D9 5C 24 34                 - fstp dword ptr [esp+34]
+0042B2EB: D9 46 08                    - fld dword ptr [esi+08]
+0042B2EE: D8 67 08                    - fsub dword ptr [edi+08]
+0042B2F1: D9 5C 24 38                 - fstp dword ptr [esp+38]
+0042B2F5: E8 86 A5 0D 00              - call 00505880
+// ---------- INJECTING HERE ----------
+0042B2FA: 83 C4 14                    - add esp,14
+// ---------- DONE INJECTING  ----------
+0042B2FD: 84 C0                       - test al,al
+0042B2FF: 75 07                       - jne 0042B308
+0042B301: C6 44 24 0B 01              - mov byte ptr [esp+0B],01
+0042B306: EB 0D                       - jmp 0042B315
+0042B308: 8B 54 24 50                 - mov edx,[esp+50]
+0042B30C: C6 44 24 0B 00              - mov byte ptr [esp+0B],00
+0042B311: 89 54 24 2C                 - mov [esp+2C],edx
+0042B315: 66 83 BC 24 90 00 00 00 00  - cmp word ptr [esp+00000090],00
+0042B31E: 0F 84 FE 01 00 00           - je 0042B522
+0042B324: D9 47 04                    - fld dword ptr [edi+04]
+}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
           <ID>78</ID>
           <Description>"Full Auto"</Description>
           <LastState/>
@@ -1614,81 +1691,6 @@ halo.exe+C4937: CC                             - int 3
 halo.exe+C4938: CC                             - int 3
 halo.exe+C4939: CC                             - int 3
 halo.exe+C493A: CC                             - int 3
-}
-</AssemblerScript>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>106</ID>
-          <Description>"Blind AI"</Description>
-          <LastState Activated="1"/>
-          <VariableType>Auto Assembler Script</VariableType>
-          <AssemblerScript>{ Game   : halo.exe
-  Version: 
-  Date   : 2022-12-15
-  Author : Kody
-
-  This script does blah blah blah
-}
-
-define(address,"halo.exe"+2B2FA)
-define(bytes,83 C4 14 84 C0)
-
-[ENABLE]
-
-assert(address,bytes)
-alloc(newmem,$1000)
-
-label(code)
-label(return)
-
-newmem:
-
-code:
-  add esp,14
-  //test al,al
-  mov eax,0
-  cmp eax,1
-  jmp return
-
-address:
-  jmp newmem
-return:
-
-[DISABLE]
-
-address:
-  db bytes
-  // add esp,14
-  // test al,al
-
-dealloc(newmem)
-
-{
-// ORIGINAL CODE - INJECTION POINT: 0042B2FA
-
-0042B2DE: D9 46 04                    - fld dword ptr [esi+04]
-0042B2E1: 51                          - push ecx
-0042B2E2: D8 67 04                    - fsub dword ptr [edi+04]
-0042B2E5: 57                          - push edi
-0042B2E6: 55                          - push ebp
-0042B2E7: D9 5C 24 34                 - fstp dword ptr [esp+34]
-0042B2EB: D9 46 08                    - fld dword ptr [esi+08]
-0042B2EE: D8 67 08                    - fsub dword ptr [edi+08]
-0042B2F1: D9 5C 24 38                 - fstp dword ptr [esp+38]
-0042B2F5: E8 86 A5 0D 00              - call 00505880
-// ---------- INJECTING HERE ----------
-0042B2FA: 83 C4 14                    - add esp,14
-// ---------- DONE INJECTING  ----------
-0042B2FD: 84 C0                       - test al,al
-0042B2FF: 75 07                       - jne 0042B308
-0042B301: C6 44 24 0B 01              - mov byte ptr [esp+0B],01
-0042B306: EB 0D                       - jmp 0042B315
-0042B308: 8B 54 24 50                 - mov edx,[esp+50]
-0042B30C: C6 44 24 0B 00              - mov byte ptr [esp+0B],00
-0042B311: 89 54 24 2C                 - mov [esp+2C],edx
-0042B315: 66 83 BC 24 90 00 00 00 00  - cmp word ptr [esp+00000090],00
-0042B31E: 0F 84 FE 01 00 00           - je 0042B522
-0042B324: D9 47 04                    - fld dword ptr [edi+04]
 }
 </AssemblerScript>
         </CheatEntry>
@@ -1907,7 +1909,6 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>76</ID>
                   <Description>"pointer"</Description>
-                  <LastState Value="00000000" RealAddress="00A30000"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -2063,63 +2064,63 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>83</ID>
                   <Description>"x"</Description>
-                  <LastState Value="29.61004257" RealAddress="00719BC8"/>
+                  <LastState Value="26.60885048" RealAddress="00719BC8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>84</ID>
                   <Description>"y"</Description>
-                  <LastState Value="-20.19347191" RealAddress="00719BCC"/>
+                  <LastState Value="-15.9577055" RealAddress="00719BCC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+4</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>85</ID>
                   <Description>"z"</Description>
-                  <LastState Value="89.24319458" RealAddress="00719BD0"/>
+                  <LastState Value="89.99989319" RealAddress="00719BD0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>86</ID>
                   <Description>"fx"</Description>
-                  <LastState Value="0.7977116108" RealAddress="00719BD4"/>
+                  <LastState Value="0.6405328512" RealAddress="00719BD4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>87</ID>
                   <Description>"fy"</Description>
-                  <LastState Value="-0.5546563268" RealAddress="00719BD8"/>
+                  <LastState Value="-0.7546817064" RealAddress="00719BD8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+10</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>88</ID>
                   <Description>"fz"</Description>
-                  <LastState Value="-0.2366697341" RealAddress="00719BDC"/>
+                  <LastState Value="-0.1420323849" RealAddress="00719BDC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+14</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>89</ID>
                   <Description>"ux"</Description>
-                  <LastState Value="0.1943146288" RealAddress="00719BE0"/>
+                  <LastState Value="0.09190817177" RealAddress="00719BE0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+18</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>90</ID>
                   <Description>"uy"</Description>
-                  <LastState Value="-0.1351087838" RealAddress="00719BE4"/>
+                  <LastState Value="-0.1082870513" RealAddress="00719BE4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+1C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>91</ID>
                   <Description>"uz"</Description>
-                  <LastState Value="0.9715901613" RealAddress="00719BE8"/>
+                  <LastState Value="0.9898619652" RealAddress="00719BE8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+20</Address>
                 </CheatEntry>
@@ -2227,6 +2228,23 @@ dealloc(newmem)
 004F8331: 8B 03              - mov eax,[ebx]
 }
 </AssemblerScript>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>112</ID>
+              <Description>"Don't Update Bone Transforms"</Description>
+              <LastState/>
+              <VariableType>Auto Assembler Script</VariableType>
+              <AssemblerScript>[ENABLE]
+004D4A80:
+db c3 90 90
+004D5C00:
+db c3 90 90 90 90 90
+[DISABLE]
+004D4A80:
+db 83 ec 24
+004D5C00:
+db 81 ec e8 00 00 00
+</AssemblerScript>
               <Hotkeys>
                 <Hotkey>
                   <Action>Toggle Activation</Action>
@@ -2234,90 +2252,19 @@ dealloc(newmem)
                     <Key>93</Key>
                   </Keys>
                   <ID>0</ID>
+                  <ActivateSound>Activate</ActivateSound>
+                  <DeactivateSound>Deactivate</DeactivateSound>
                 </Hotkey>
               </Hotkeys>
             </CheatEntry>
             <CheatEntry>
-              <ID>108</ID>
-              <Description>"Break Entity Quaternion Updates"</Description>
+              <ID>113</ID>
+              <Description>"Modify Animation Timer"</Description>
               <LastState/>
               <VariableType>Auto Assembler Script</VariableType>
               <AssemblerScript>{ Game   : halo.exe
   Version: 
-  Date   : 2022-12-15
-  Author : Kody
-
-  This script does blah blah blah
-}
-
-define(address,"halo.exe"+D4A80)
-define(bytes,83 EC 24 53 33 DB)
-
-[ENABLE]
-
-assert(address,bytes)
-alloc(newmem,$1000)
-
-label(code)
-label(return)
-
-newmem:
-
-code:
-  ret
-
-address:
-  jmp newmem
-  nop
-return:
-
-[DISABLE]
-
-address:
-  db bytes
-  // sub esp,24
-  // push ebx
-  // xor ebx,ebx
-
-dealloc(newmem)
-
-{
-// ORIGINAL CODE - INJECTION POINT: 004D4A80
-
-004D4A76: CC                 - int 3 
-004D4A77: CC                 - int 3 
-004D4A78: CC                 - int 3 
-004D4A79: CC                 - int 3 
-004D4A7A: CC                 - int 3 
-004D4A7B: CC                 - int 3 
-004D4A7C: CC                 - int 3 
-004D4A7D: CC                 - int 3 
-004D4A7E: CC                 - int 3 
-004D4A7F: CC                 - int 3 
-// ---------- INJECTING HERE ----------
-004D4A80: 83 EC 24           - sub esp,24
-// ---------- DONE INJECTING  ----------
-004D4A83: 53                 - push ebx
-004D4A84: 33 DB              - xor ebx,ebx
-004D4A86: 66 39 5F 20        - cmp [edi+20],bx
-004D4A8A: 56                 - push esi
-004D4A8B: 8B F0              - mov esi,eax
-004D4A8D: 0F 85 29 03 00 00  - jne 004D4DBC
-004D4A93: 3B F3              - cmp esi,ebx
-004D4A95: 74 26              - je 004D4ABD
-004D4A97: 8B 47 28           - mov eax,[edi+28]
-004D4A9A: 3B C3              - cmp eax,ebx
-}
-</AssemblerScript>
-            </CheatEntry>
-            <CheatEntry>
-              <ID>109</ID>
-              <Description>"Don't Animate Marine Transforms"</Description>
-              <LastState/>
-              <VariableType>Auto Assembler Script</VariableType>
-              <AssemblerScript>{ Game   : halo.exe
-  Version: 
-  Date   : 2022-12-15
+  Date   : 2022-12-16
   Author : Kody
 
   This script does blah blah blah
@@ -2337,7 +2284,17 @@ label(return)
 newmem:
 
 code:
-  ret
+
+  push eax
+  lea eax,[esp+08+04]
+{$ccode ipTime=eax}
+  float* pTime = (float*) ipTime;
+  *pTime *= 2.0f;
+{$asm}
+  pop eax
+
+  sub esp,000000E8
+  jmp return
 
 address:
   jmp newmem
@@ -2384,77 +2341,6 @@ dealloc(newmem)
           </CheatEntries>
         </CheatEntry>
       </CheatEntries>
-    </CheatEntry>
-    <CheatEntry>
-      <ID>111</ID>
-      <Description>"Auto Assemble script"</Description>
-      <LastState Activated="1"/>
-      <VariableType>Auto Assembler Script</VariableType>
-      <AssemblerScript>{ Game   : halo.exe
-  Version: 
-  Date   : 2022-12-15
-  Author : Kody
-
-  This script does blah blah blah
-}
-
-define(address,"halo.exe"+F4250)
-define(bytes,8B 0D B0 03 86 00)
-
-[ENABLE]
-
-assert(address,bytes)
-alloc(newmem,$1000)
-
-label(code)
-label(return)
-
-newmem:
-
-code:
-  ret
-
-address:
-  jmp newmem
-  nop
-return:
-
-[DISABLE]
-
-address:
-  db bytes
-  // mov ecx,[008603B0]
-
-dealloc(newmem)
-
-{
-// ORIGINAL CODE - INJECTION POINT: 004F4250
-
-004F4246: CC                    - int 3 
-004F4247: CC                    - int 3 
-004F4248: CC                    - int 3 
-004F4249: CC                    - int 3 
-004F424A: CC                    - int 3 
-004F424B: CC                    - int 3 
-004F424C: CC                    - int 3 
-004F424D: CC                    - int 3 
-004F424E: CC                    - int 3 
-004F424F: CC                    - int 3 
-// ---------- INJECTING HERE ----------
-004F4250: 8B 0D B0 03 86 00     - mov ecx,[008603B0]
-// ---------- DONE INJECTING  ----------
-004F4256: 8B 51 34              - mov edx,[ecx+34]
-004F4259: 53                    - push ebx
-004F425A: 8B 5C 24 08           - mov ebx,[esp+08]
-004F425E: 8B C3                 - mov eax,ebx
-004F4260: 25 FF FF 00 00        - and eax,0000FFFF
-004F4265: 8D 04 40              - lea eax,[eax+eax*2]
-004F4268: 8B 44 82 08           - mov eax,[edx+eax*4+08]
-004F426C: 0F BF 88 B4 00 00 00  - movsx ecx,word ptr [eax+000000B4]
-004F4273: 55                    - push ebp
-004F4274: 8B 6C 24 10           - mov ebp,[esp+10]
-}
-</AssemblerScript>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -3925,7 +3811,7 @@ dealloc(newmem)
             </Elements>
           </Structure>
         </Element>
-        <Element Offset="20" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000014" DisplayMethod="Hexadecimal"/>
+        <Element Offset="20" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000014" Description="ageMiliseconds" DisplayMethod="Unsigned Integer"/>
         <Element Offset="24" Vartype="4 Bytes" Bytesize="4" RLECount="17" OffsetHex="00000018" DisplayMethod="Unsigned Integer"/>
         <Element Offset="92" Vartype="Float" Bytesize="4" OffsetHex="0000005C" Description="X" DisplayMethod="Signed Integer"/>
         <Element Offset="96" Vartype="Float" Bytesize="4" OffsetHex="00000060" Description="Y" DisplayMethod="Unsigned Integer"/>
@@ -3949,7 +3835,8 @@ dealloc(newmem)
         <Element Offset="192" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000C0" DisplayMethod="Hexadecimal"/>
         <Element Offset="196" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000000C4" DisplayMethod="Unsigned Integer"/>
         <Element Offset="204" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000CC" DisplayMethod="Hexadecimal"/>
-        <Element Offset="208" Vartype="Pointer" Bytesize="4" OffsetHex="000000D0" DisplayMethod="Unsigned Integer"/>
+        <Element Offset="208" Vartype="2 Bytes" Bytesize="2" OffsetHex="000000D0" Description="animId" DisplayMethod="Signed Integer"/>
+        <Element Offset="210" Vartype="2 Bytes" Bytesize="2" OffsetHex="000000D2" Description="animFrame" DisplayMethod="Signed Integer"/>
         <Element Offset="212" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000D4" DisplayMethod="Unsigned Integer"/>
         <Element Offset="216" Vartype="Float" Bytesize="4" RLECount="2" OffsetHex="000000D8" DisplayMethod="Unsigned Integer"/>
         <Element Offset="224" Vartype="Float" Bytesize="4" OffsetHex="000000E0" Description="Health" DisplayMethod="Unsigned Integer"/>
