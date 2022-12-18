@@ -8,9 +8,11 @@ namespace TimeHack {
 
     const float walkingSpeed = 0.07f;
     const float timescaleDeadzone = 0.05f;
-    const float rotationActivityCoefficient = 10.0f;
+    const float rotationActivityCoefficient = 100.0f;
     const DWORD unpauseAfterFireMilis = 100;
-    const float activityDecayRate = 0.1f;
+    const float activityDecayRate = 0.05f;
+    const float maxTimescaleDueToTurning = 0.5f;
+    const float maxSpeed = walkingSpeed * 20.0f;
 
     // The tick until which the player is considered to be acting.
     DWORD playerIsActingUntil = 0;
@@ -21,10 +23,12 @@ namespace TimeHack {
     DWORD allowUpdateUntil;
 
     Vec3 previousLook;
+    float lookSpeed, lookSpeedSmoothed;
     void updateLookActivity() {
         float sinRot = previousLook.cross(pCamData->fwd).length();
-        float rot = asinf(sinRot);
-        activityLevel += rot * rotationActivityCoefficient;
+        lookSpeed = asinf(sinRot);
+        lookSpeedSmoothed = Math::lerp(lookSpeedSmoothed, lookSpeed, 0.5f);
+        // activityLevel += rot * rotationActivityCoefficient;
         previousLook = pCamData->fwd;
     }
 
@@ -36,7 +40,9 @@ namespace TimeHack {
         float playerSpeed = pPlayer->velocity.length();
         float speedLevel = playerSpeed / walkingSpeed;
 
-        float netLevel = speedLevel + activityLevel;
+        float lookSpeedLevel = Math::smoothstep(0.0f, 1.0f, lookSpeedSmoothed * rotationActivityCoefficient) * maxTimescaleDueToTurning;
+
+        float netLevel = speedLevel + lookSpeedLevel + activityLevel;
 
         return Math::smoothstep(0.0f, 1.0f, netLevel);
     }
@@ -70,6 +76,11 @@ namespace TimeHack {
         
         EntityRecord record = getRecord(entityHandle);
         Entity* pEntity = record.pEntity;
+
+        float speed = pEntity->velocity.length();
+        if (speed > maxSpeed) {
+            pEntity->velocity = pEntity->velocity.unit() * maxSpeed;
+        }
         
         oldPos = pEntity->pos;
         oldVel = pEntity->velocity;
@@ -80,7 +91,7 @@ namespace TimeHack {
             oldAge = pEntity->projectileAge;
             oldFuse = pEntity->fuse;
 
-            pEntity->velocity = oldVel * timescale;
+            // pEntity->velocity = oldVel * timescale;
         }
 
     }
@@ -118,13 +129,12 @@ namespace TimeHack {
             float deltaFuse = newFuse - oldFuse;
             pEntity->fuse = oldFuse + deltaFuse * timescale;
             
-            deltaVel = newVel - oldVel * timescale;
-        } else {
-            if (pEntity->parentEntityHandle == oldParentEntityHandle)
-                pEntity->pos = oldPos + deltaPos * timescale;
-
-            deltaVel = newVel - oldVel;
+            // deltaVel = newVel - oldVel * timescale;
         }
+
+        if (pEntity->parentEntityHandle == oldParentEntityHandle)
+            pEntity->pos = oldPos + deltaPos * timescale;
+        deltaVel = newVel - oldVel;
         
         pEntity->velocity = oldVel + deltaVel * timescale;
 
@@ -152,6 +162,10 @@ namespace TimeHack {
         
         if (!shouldAnythingFreeze || doSingleStep || isSelected)
             return true;
+
+        EntityRecord rec = getRecord(entityHandle);
+        if (rec.pEntity && rec.pEntity->entityCategory == EntityCategory_Projectile)
+            return true; // Deadzoning does not apply to projectiles.
             
         return isPlayerControlled(entityHandle);
     }
@@ -172,7 +186,6 @@ namespace TimeHack {
     // To check if the player has fired.
     namespace ConsumeClipHook {
         void onConsumeClip(DWORD dwWeapon) {
-            // std::cout << dwWeapon << std::endl;
             if (!dwWeapon)
                 return;
             auto pWeapon = (Entity*) dwWeapon;
@@ -216,13 +229,25 @@ namespace TimeHack {
         //     allowUpdateUntil = GetTickCount() + 500;
         // }
 
-        updateLookActivity();
+        if (Options::timeHack) {
+            auto pPlayer = getPlayerPointer();
 
-        DWORD now = GetTickCount();
-        bool isActing = playerIsActingUntil > now;
-        float targetActivityLevel = isActing ? 1.0f : 0.0f;
+            if (!pPlayer)
+                return;
 
-        activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
+            updateLookActivity();
+
+            bool isThrowingGrenade = pPlayer->animId == 0xBC && pPlayer->animFrame < 0x12;
+
+            DWORD now = GetTickCount();
+            bool isActing = playerIsActingUntil > now || isThrowingGrenade;
+            float targetActivityLevel = isActing ? 1.0f : 0.0f;
+
+            activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
+
+            //std::cout << pPlayer->animId << " " << pPlayer->animFrame << std::endl;
+
+        }
 
     }
 
