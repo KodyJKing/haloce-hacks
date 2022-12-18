@@ -24,8 +24,8 @@ void cleanupHooks();
 // === Options ===
 namespace Options {
     DllExport bool aimbot          = false;
-    DllExport bool esp             = true;
-    DllExport bool timeHack        = false;
+    DllExport bool esp             = false;
+    DllExport bool timeHack        = true;
     DllExport bool freezeTime      = false;
     DllExport bool showLines       = true;
     DllExport bool showNumbers     = false;

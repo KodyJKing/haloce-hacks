@@ -63,6 +63,7 @@ void removeAllVTableHooks() {
 #define GET_DWORD_REG_GLOBAL(name, reg) __asm { mov [name], reg }
 #define POPSTATE_AND_RETURN __asm popad __asm popfd __asm ret
 #define PUSHSTATE_BYTES 0x24
+#define RETURN_ADDRESS_BYTES 0x04
 
 // === Opcodes =======
 #define CALL   '\xE8'

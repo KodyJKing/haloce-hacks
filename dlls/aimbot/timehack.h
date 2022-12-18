@@ -2,28 +2,54 @@
 #include "hook.h"
 #include "vec3.h"
 #include "haloex.h"
+#include "util/math.h"
 
 namespace TimeHack {
 
-    float walkingSpeed = 0.07f;
-    float speedDeadzone = 0.005f;
+    const float walkingSpeed = 0.07f;
+    const float timescaleDeadzone = 0.05f;
+    const float rotationActivityCoefficient = 10.0f;
+    const DWORD unpauseAfterFireMilis = 100;
+    const float activityDecayRate = 0.1f;
+
+    // The tick until which the player is considered to be acting.
+    DWORD playerIsActingUntil = 0;
+    float activityLevel = 0.0f;
 
     // Used to allow a selected entity to update despite freeze.
     DWORD allowUpdateHandle;
     DWORD allowUpdateUntil;
 
-    float getTimescale(DWORD entityHandle) {
+    Vec3 previousLook;
+    void updateLookActivity() {
+        float sinRot = previousLook.cross(pCamData->fwd).length();
+        float rot = asinf(sinRot);
+        activityLevel += rot * rotationActivityCoefficient;
+        previousLook = pCamData->fwd;
+    }
+
+    float getTimeScale() {
+        auto pPlayer = getPlayerPointer();
+        if (!pPlayer)
+            return 1.0f;
+
+        float playerSpeed = pPlayer->velocity.length();
+        float speedLevel = playerSpeed / walkingSpeed;
+
+        float netLevel = speedLevel + activityLevel;
+
+        return Math::smoothstep(0.0f, 1.0f, netLevel);
+    }
+
+    float getTimeScaleForEntity(DWORD entityHandle) {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
 
-        auto pPlayer = getPlayerPointer();
-        float playerSpeed = pPlayer->velocity.length();
-        float s = playerSpeed / walkingSpeed;
-
-        EntityRecord record = getRecord(entityHandle);
+        // EntityRecord record = getRecord(entityHandle);
         // if (record.typeId == 0x02E4)
         //     return s * 0.1f;
-        return s;
+
+        return getTimeScale();
     }
 
     DWORD playerFrameCount = 0;
@@ -32,7 +58,6 @@ namespace TimeHack {
     float oldAge, oldFuse;
     ushort oldAnimFrame;
     void preUpdateEntity(DWORD entityHandle) {
-        // GET_DWORD_REG(entityHandle, ebx);
 
         if (entityHandle == pPlayerData->entityHandle)
             playerFrameCount++;
@@ -41,7 +66,7 @@ namespace TimeHack {
 
         updatingEntityHandle = entityHandle;
 
-        float timescale = getTimescale(updatingEntityHandle);
+        float timescale = getTimeScaleForEntity(updatingEntityHandle);
         
         EntityRecord record = getRecord(entityHandle);
         Entity* pEntity = record.pEntity;
@@ -58,13 +83,12 @@ namespace TimeHack {
             pEntity->velocity = oldVel * timescale;
         }
 
-        //record.pEntity->velocity = oldPos * timescale;
     }
 
     void postUpdateEntity() {
         if (!Options::timeHack) return;
 
-        float timescale = getTimescale(updatingEntityHandle);
+        float timescale = getTimeScaleForEntity(updatingEntityHandle);
 
         EntityRecord record = getRecord(updatingEntityHandle);
         Entity* pEntity = record.pEntity;
@@ -109,7 +133,10 @@ namespace TimeHack {
     bool isPlayerControlled(DWORD entityHandle) {
         EntityRecord rec = getRecord(entityHandle);
         Entity* pPlayer = getPlayerPointer();
+        if (!pPlayer)
+            return false;
         return
+            rec.pEntity->parentEntityHandle == pPlayerData->entityHandle ||
             entityHandle == pPlayer->childEntityHandle ||
             entityHandle == pPlayer->parentEntityHandle ||
             entityHandle == pPlayer->vehicleEntityHandle ||
@@ -120,9 +147,8 @@ namespace TimeHack {
     bool shouldEntityUpdate(DWORD entityHandle) {
         bool isSelected = entityHandle == allowUpdateHandle && GetTickCount() < allowUpdateUntil;
 
-        Entity* pPlayer = getPlayerPointer();
-        bool isPlayerDeadzoneSpeed = pPlayer->velocity.length() < speedDeadzone;
-        bool shouldAnythingFreeze = Options::freezeTime || Options::timeHack && isPlayerDeadzoneSpeed;
+        bool isTimescaleDeadzone = getTimeScale() < timescaleDeadzone;
+        bool shouldAnythingFreeze = Options::freezeTime || Options::timeHack && isTimescaleDeadzone;
         
         if (!shouldAnythingFreeze || doSingleStep || isSelected)
             return true;
@@ -143,20 +169,61 @@ namespace TimeHack {
         __asm jmp [updateEntityHook_trampolineReturn];
     }
 
+    // To check if the player has fired.
+    namespace ConsumeClipHook {
+        void onConsumeClip(DWORD dwWeapon) {
+            // std::cout << dwWeapon << std::endl;
+            if (!dwWeapon)
+                return;
+            auto pWeapon = (Entity*) dwWeapon;
+            if (pWeapon->parentEntityHandle == pPlayerData->entityHandle)
+                playerIsActingUntil = GetTickCount() + unpauseAfterFireMilis;
+        }
+
+        Naked void hook() {
+            DWORD dwWeapon;
+            _asm {
+                push ebp
+                mov ebp, esp
+                sub esp, __LOCAL_SIZE
+
+                mov [dwWeapon], edi
+            }
+
+            onConsumeClip(dwWeapon);
+
+            _asm {
+                add esp, __LOCAL_SIZE
+                pop ebp
+                ret
+            }
+        }
+    }
+
     void init() {
         auto hook = addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE);
         updateEntityHook_trampolineReturn = hook.trampolineReturn;
-
         addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
+        addJumpHook("ConsumeClip", 0x004C408FU, 7, (DWORD) ConsumeClipHook::hook, HK_PUSH_STATE);
     }
 
     void update() {
-        if ( GetAsyncKeyState('U') ) {
-            RaycastResult result;
-            raycastPlayerCrosshair(&result, traceProjectileRaycastFlags);
-            allowUpdateHandle = result.entityHandle;
-            allowUpdateUntil = GetTickCount() + 500;
-        }
+
+        // if ( GetAsyncKeyState('U') ) {
+        //     RaycastResult result;
+        //     raycastPlayerCrosshair(&result, traceProjectileRaycastFlags);
+        //     allowUpdateHandle = result.entityHandle;
+        //     allowUpdateUntil = GetTickCount() + 500;
+        // }
+
+        updateLookActivity();
+
+        DWORD now = GetTickCount();
+        bool isActing = playerIsActingUntil > now;
+        float targetActivityLevel = isActing ? 1.0f : 0.0f;
+
+        activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
+
     }
 
 }

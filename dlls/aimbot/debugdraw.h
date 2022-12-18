@@ -1,4 +1,5 @@
 #include "drawing.h"
+#include "util/math.h"
 // #include <algorithm>
 
 #pragma once
@@ -21,13 +22,6 @@ namespace {
     void addDebugLine(DebugLine line) {
         lineBuffer[writeHead++] = line;
         writeHead %= bufferSize;
-    }
-
-    float clamp(float x, float min, float max) { return x < min ? min : ( x > max ? max : x ); }
-
-    float smoothstep(float edge0, float edge1, float x) {
-        x = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-        return x * x * (3 - 2 * x);
     }
 
 }
@@ -57,7 +51,7 @@ namespace DebugDraw {
         for (int i = 0; i < bufferSize; i++) {
             auto l = lineBuffer[i];
             float t = (float)(l.expirationTick - now) / (float)l.durationTicks;
-            float s = smoothstep(.0f, .1f, t);
+            float s = Math::smoothstep(.0f, .1f, t);
             D3DCOLOR finalColor = l.color;
             uchar* pAlpha = ((uchar*)(&finalColor)) + 3;
             *pAlpha = (uchar)(*pAlpha * s);

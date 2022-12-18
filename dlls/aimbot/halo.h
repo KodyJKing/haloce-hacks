@@ -149,6 +149,8 @@ int findEntityIndex(int address) {
 }
 
 EntityRecord getRecord(int handle) {
+    if (!handle || handle == NULL_ENTITY_HANDLE)
+        return {};
     int index = handle & 0xFFFF;
     EntityList* entityList = getpEntityList();
     return entityList->pEntityRecords[index];
