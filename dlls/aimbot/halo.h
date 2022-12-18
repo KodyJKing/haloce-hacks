@@ -11,7 +11,9 @@ typedef unsigned short ushort;
 typedef struct {
     // Created with ReClass.NET 1.2 by KN4CK3R
 	uint tagHandle; //0x0000
-	char pad_0004[88]; //0x0004
+	char pad_0004[16]; //0x0004
+	uint ageMilis; //0x0014
+	char pad_0018[68]; //0x0018
 	Vec3 pos; //0x005C
 	Vec3 velocity; //0x0068
 	char pad_0074[44]; //0x0074
@@ -38,7 +40,8 @@ typedef struct {
 	char pad_0244[4]; //0x0244
 	float projectileAge; //0x0248
 	float projectileAgeRate; //0x024C
-	char pad_0250[204]; //0x0250
+	float projectileAge2; //0x0250
+	char pad_0254[200]; //0x0254
 	uchar N0000010E; //0x031C
 	uchar N00000130; //0x031D
 	uchar frags; //0x031E

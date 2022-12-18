@@ -18,10 +18,6 @@ namespace TimeHack {
     DWORD playerIsActingUntil = 0;
     float activityLevel = 0.0f;
 
-    // Used to allow a selected entity to update despite freeze.
-    DWORD allowUpdateHandle;
-    DWORD allowUpdateUntil;
-
     Vec3 previousLook;
     float lookSpeed, lookSpeedSmoothed;
     void updateLookActivity() {
@@ -58,85 +54,84 @@ namespace TimeHack {
         return getTimeScale();
     }
 
-    DWORD playerFrameCount = 0;
-    DWORD updatingEntityHandle, oldParentEntityHandle;
-    Vec3 oldPos, oldVel;
-    float oldAge, oldFuse;
-    ushort oldAnimFrame;
-    void preUpdateEntity(DWORD entityHandle) {
+    namespace Rewind {
 
-        if (entityHandle == pPlayerData->entityHandle)
-            playerFrameCount++;
-        
-        if (!Options::timeHack) return;
+        ushort oldAnimFrame;
+        DWORD updatingEntityHandle, oldParentEntityHandle;
 
-        updatingEntityHandle = entityHandle;
+        Vec3 old_pos, old_velocity;
+        float old_projectileAge, old_projectileAge2, old_fuse;
 
-        float timescale = getTimeScaleForEntity(updatingEntityHandle);
-        
-        EntityRecord record = getRecord(entityHandle);
-        Entity* pEntity = record.pEntity;
+        #define REWIND(field, type) \
+            auto delta_##field = pEntity->field - old_##field; \
+            pEntity->field = old_##field + (type)(delta_##field * timescale)
+        #define SAVE(field) old_##field = pEntity->field
 
-        float speed = pEntity->velocity.length();
-        if (speed > maxSpeed) {
-            pEntity->velocity = pEntity->velocity.unit() * maxSpeed;
-        }
-        
-        oldPos = pEntity->pos;
-        oldVel = pEntity->velocity;
-        oldParentEntityHandle = pEntity->parentEntityHandle;
-        oldAnimFrame = pEntity->animFrame;
+        void save(DWORD entityHandle) {
 
-        if (pEntity->entityCategory == EntityCategory_Projectile) {
-            oldAge = pEntity->projectileAge;
-            oldFuse = pEntity->fuse;
+            updatingEntityHandle = entityHandle;
 
-            // pEntity->velocity = oldVel * timescale;
-        }
-
-    }
-
-    void postUpdateEntity() {
-        if (!Options::timeHack) return;
-
-        float timescale = getTimeScaleForEntity(updatingEntityHandle);
-
-        EntityRecord record = getRecord(updatingEntityHandle);
-        Entity* pEntity = record.pEntity;
-
-        Vec3 newPos = pEntity->pos;
-        Vec3 deltaPos = newPos - oldPos;
-        Vec3 newVel = pEntity->velocity;
-        Vec3 deltaVel;
-
-        ushort newAnimFrame = pEntity->animFrame;
-        ushort deltaAnimFrame = newAnimFrame - oldAnimFrame;
-        if (deltaAnimFrame == 1) {
-            ushort framesToAdd = (ushort) floorf(deltaAnimFrame * timescale);
-            float lostFrames = deltaAnimFrame * timescale - framesToAdd;
-            float u = (float) rand() / RAND_MAX;
-            if (u < lostFrames)
-                framesToAdd++;
-            pEntity->animFrame = oldAnimFrame + framesToAdd;
-        }
-
-        if (pEntity->entityCategory == EntityCategory_Projectile) {
-            float newAge = pEntity->projectileAge;
-            float deltaAge = newAge - oldAge;
-            pEntity->projectileAge = oldAge + deltaAge * timescale;
-
-            float newFuse = pEntity->fuse;
-            float deltaFuse = newFuse - oldFuse;
-            pEntity->fuse = oldFuse + deltaFuse * timescale;
+            // float timescale = getTimeScaleForEntity(updatingEntityHandle);
             
-            // deltaVel = newVel - oldVel * timescale;
+            EntityRecord record = getRecord(entityHandle);
+            Entity* pEntity = record.pEntity;
+
+            float speed = pEntity->velocity.length();
+            if (speed > maxSpeed)
+                pEntity->velocity = pEntity->velocity.unit() * maxSpeed;
+            
+            oldParentEntityHandle = pEntity->parentEntityHandle;
+            oldAnimFrame = pEntity->animFrame;
+
+            // old_pos = pEntity->pos;
+            // old_velocity = pEntity->velocity;
+
+            SAVE(pos);
+            SAVE(velocity);
+
+            if (pEntity->entityCategory == EntityCategory_Projectile) {
+                SAVE(projectileAge);
+                SAVE(projectileAge2);
+                SAVE(fuse);
+                // pEntity->velocity = oldVel * timescale;
+            }
+
         }
 
-        if (pEntity->parentEntityHandle == oldParentEntityHandle)
-            pEntity->pos = oldPos + deltaPos * timescale;
-        deltaVel = newVel - oldVel;
-        
-        pEntity->velocity = oldVel + deltaVel * timescale;
+        void rewind() {
+
+            float timescale = getTimeScaleForEntity(updatingEntityHandle);
+
+            EntityRecord record = getRecord(updatingEntityHandle);
+            Entity* pEntity = record.pEntity;
+
+            ushort newAnimFrame = pEntity->animFrame;
+            ushort deltaAnimFrame = newAnimFrame - oldAnimFrame;
+            if (deltaAnimFrame == 1) {
+                ushort framesToAdd = (ushort) floorf(deltaAnimFrame * timescale);
+                float lostFrames = deltaAnimFrame * timescale - framesToAdd;
+                float u = (float) rand() / RAND_MAX;
+                if (u < lostFrames)
+                    framesToAdd++;
+                pEntity->animFrame = oldAnimFrame + framesToAdd;
+            }
+
+            if (pEntity->entityCategory == EntityCategory_Projectile) {
+                REWIND(projectileAge, float);
+                REWIND(projectileAge2, float);
+                REWIND(fuse, float);
+            }
+
+            if (pEntity->parentEntityHandle == oldParentEntityHandle) {
+                REWIND(pos, Vec3);
+            }
+
+            REWIND(velocity, Vec3);
+
+        }
+
+        #undef REWIND
+        #undef SAVE
 
     }
 
@@ -155,17 +150,15 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
-        bool isSelected = entityHandle == allowUpdateHandle && GetTickCount() < allowUpdateUntil;
-
         bool isTimescaleDeadzone = getTimeScale() < timescaleDeadzone;
         bool shouldAnythingFreeze = Options::freezeTime || Options::timeHack && isTimescaleDeadzone;
         
-        if (!shouldAnythingFreeze || doSingleStep || isSelected)
+        if (!shouldAnythingFreeze || doSingleStep)
             return true;
 
         EntityRecord rec = getRecord(entityHandle);
         if (rec.pEntity && rec.pEntity->entityCategory == EntityCategory_Projectile)
-            return true; // Deadzoning does not apply to projectiles.
+            return !Options::freezeTime && !doSingleStep; // Deadzoning does not apply to projectiles.
             
         return isPlayerControlled(entityHandle);
     }
@@ -213,6 +206,20 @@ namespace TimeHack {
         }
     }
 
+    void preUpdateEntity(DWORD entityHandle) {
+        if (!Options::timeHack)
+            return;
+
+        Rewind::save(entityHandle);
+    }
+
+    void postUpdateEntity() {
+        if (!Options::timeHack)
+            return;
+
+        Rewind::rewind();
+    }
+
     void init() {
         auto hook = addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE);
         updateEntityHook_trampolineReturn = hook.trampolineReturn;
@@ -221,13 +228,6 @@ namespace TimeHack {
     }
 
     void update() {
-
-        // if ( GetAsyncKeyState('U') ) {
-        //     RaycastResult result;
-        //     raycastPlayerCrosshair(&result, traceProjectileRaycastFlags);
-        //     allowUpdateHandle = result.entityHandle;
-        //     allowUpdateUntil = GetTickCount() + 500;
-        // }
 
         if (Options::timeHack) {
             auto pPlayer = getPlayerPointer();
