@@ -165,7 +165,8 @@ namespace Drawing {
     void drawThickLine3D(
         Vec3 a, Vec3 b,
         float thickness,
-        D3DCOLOR color
+        D3DCOLOR color,
+        D3DCOLOR color2
     ) {
         Vec3 mid = (a + b) / 2;
         Vec3 toEye = pCamData->pos - mid;
@@ -179,12 +180,20 @@ namespace Drawing {
         Vec3 v2 = a + tangent * r;
         Vec3 v3 = b + tangent * r;
 
-        #define vert(v) { v.x, v.y, v.z, color }
-        ColoredVertex vertices[] = { vert(v0), vert(v1), vert(v2), vert(v3) };
+        #define vert(v, c) { v.x, v.y, v.z, c }
+        ColoredVertex vertices[] = { vert(v0, color), vert(v1, color2), vert(v2, color), vert(v3, color2) };
         #undef vert
 
         pDevice->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
         pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, vertices, sizeof(ColoredVertex));
+    }
+
+    void drawThickLine3D(
+        Vec3 a, Vec3 b,
+        float thickness,
+        D3DCOLOR color
+    ) {
+        drawThickLine3D(a, b, thickness, color, color);
     }
 
     // === Transform functions ===

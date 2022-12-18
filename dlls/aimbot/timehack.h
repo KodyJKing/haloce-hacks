@@ -1,4 +1,5 @@
 #include "dllmain.h"
+#include "drawing.h"
 #include "hook.h"
 #include "vec3.h"
 #include "haloex.h"
@@ -24,7 +25,6 @@ namespace TimeHack {
         float sinRot = previousLook.cross(pCamData->fwd).length();
         lookSpeed = asinf(sinRot);
         lookSpeedSmoothed = Math::lerp(lookSpeedSmoothed, lookSpeed, 0.5f);
-        // activityLevel += rot * rotationActivityCoefficient;
         previousLook = pCamData->fwd;
     }
 
@@ -47,10 +47,6 @@ namespace TimeHack {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
 
-        // EntityRecord record = getRecord(entityHandle);
-        // if (record.typeId == 0x02E4)
-        //     return s * 0.1f;
-
         return getTimeScale();
     }
 
@@ -71,8 +67,6 @@ namespace TimeHack {
 
             updatingEntityHandle = entityHandle;
 
-            // float timescale = getTimeScaleForEntity(updatingEntityHandle);
-            
             EntityRecord record = getRecord(entityHandle);
             Entity* pEntity = record.pEntity;
 
@@ -83,9 +77,6 @@ namespace TimeHack {
             oldParentEntityHandle = pEntity->parentEntityHandle;
             oldAnimFrame = pEntity->animFrame;
 
-            // old_pos = pEntity->pos;
-            // old_velocity = pEntity->velocity;
-
             SAVE(pos);
             SAVE(velocity);
 
@@ -93,7 +84,6 @@ namespace TimeHack {
                 SAVE(projectileAge);
                 SAVE(projectileAge2);
                 SAVE(fuse);
-                // pEntity->velocity = oldVel * timescale;
             }
 
         }
@@ -122,6 +112,7 @@ namespace TimeHack {
                 REWIND(fuse, float);
             }
 
+            // Do not rewind positions if an entity changes mounts.
             if (pEntity->parentEntityHandle == oldParentEntityHandle) {
                 REWIND(pos, Vec3);
             }
@@ -163,19 +154,6 @@ namespace TimeHack {
         return isPlayerControlled(entityHandle);
     }
 
-    DWORD updateEntityHook_trampolineReturn;
-    DWORD updateEntityHook_entityHandle;
-    Naked void updateEntityHook() {
-        __asm mov [updateEntityHook_entityHandle], ebx;
-
-        if (!shouldEntityUpdate(updateEntityHook_entityHandle))
-            POPSTATE_AND_RETURN; // Forces hooked function to return early so entity doesn't update.
-
-        preUpdateEntity(updateEntityHook_entityHandle);
-        
-        __asm jmp [updateEntityHook_trampolineReturn];
-    }
-
     // To check if the player has fired.
     namespace ConsumeClipHook {
         void onConsumeClip(DWORD dwWeapon) {
@@ -204,28 +182,53 @@ namespace TimeHack {
                 ret
             }
         }
+
+        void setup() {
+            addJumpHook("ConsumeClip", 0x004C408FU, 7, (DWORD) hook, HK_PUSH_STATE);
+        }
     }
 
-    void preUpdateEntity(DWORD entityHandle) {
-        if (!Options::timeHack)
-            return;
+    namespace UpdateEntityHook {
+        void preUpdateEntity(DWORD entityHandle) {
+            if (!Options::timeHack)
+                return;
 
-        Rewind::save(entityHandle);
-    }
+            Rewind::save(entityHandle);
+        }
 
-    void postUpdateEntity() {
-        if (!Options::timeHack)
-            return;
+        void postUpdateEntity() {
+            if (!Options::timeHack)
+                return;
 
-        Rewind::rewind();
+            Rewind::rewind();
+        }
+
+        DWORD trampolineReturn;
+        DWORD entityHandle;
+        Naked void updateEntityHook() {
+            __asm mov [entityHandle], ebx;
+
+            if (!shouldEntityUpdate(entityHandle))
+                POPSTATE_AND_RETURN; // Forces hooked function to return early so entity doesn't update.
+
+            preUpdateEntity(entityHandle);
+            
+            __asm jmp [trampolineReturn];
+        }
+
+        void setup() {
+            addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE, &trampolineReturn);
+            addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
+        }
+
     }
 
     void init() {
-        auto hook = addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE);
-        updateEntityHook_trampolineReturn = hook.trampolineReturn;
-        addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
-        addJumpHook("ConsumeClip", 0x004C408FU, 7, (DWORD) ConsumeClipHook::hook, HK_PUSH_STATE);
+        UpdateEntityHook::setup();
+        ConsumeClipHook::setup();
     }
+
+    void renderTracers();
 
     void update() {
 
@@ -246,6 +249,40 @@ namespace TimeHack {
             activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
 
             //std::cout << pPlayer->animId << " " << pPlayer->animFrame << std::endl;
+
+            int midx = (int) pCamData->viewportWidth / 2;
+            Drawing::drawText(midx, 0, 0xFFFF0000, {0, 1}, "SUPERHOT Mod");
+
+            renderTracers();
+
+        }
+
+    }
+
+    void renderTracers() {
+
+        Drawing::setDefaultRenderState();
+        Drawing::setup3DTransforms(pCamData->fov);
+        Drawing::enableDepthTest(true);
+
+        Entities records;
+        getValidEntityRecords(&records);
+        for (auto rec : records) {
+
+            Entity* pEntity = rec.pEntity;
+            
+            if (pEntity->entityCategory != EntityCategory_Projectile)
+                continue;
+
+            float epsilon = 0.001f;
+            Vec3 UP = {0, 0, epsilon};
+
+            Vec3 pos = pEntity->pos - UP;
+            Vec3 oldPos = pEntity->pos - pEntity->velocity * 0.5f - UP;
+            Drawing::drawThickLine3D(
+                pos, oldPos, 0.01f,
+                0xFFFF0000, 0x00FF0000
+            );
 
         }
 

@@ -118,9 +118,9 @@ void onSceneEnd() {
 
     checkOptionToggles();
 
+    TimeHack::update();
     ESP::render();
     Aimbot::update();
-    TimeHack::update();
 
     if( keypressed('C') )
         teleportToCrosshair();

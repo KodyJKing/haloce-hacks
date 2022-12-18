@@ -195,9 +195,6 @@ namespace ESP {
 
         DebugDraw::renderLines();
 
-        Entities entities;
-        getValidEntityRecords(&entities);
-
         RaycastResult rcResult;
         raycastPlayerCrosshair(&rcResult, traceProjectileRaycastFlags);
 
@@ -206,6 +203,9 @@ namespace ESP {
             entityUnderCrosshair = getRecord(rcResult.entityHandle);
 
         Drawing::enableDepthTest(false);
+        
+        Entities entities;
+        getValidEntityRecords(&entities);
         for (auto record : entities) {
             auto pEntity = record.pEntity;
 
