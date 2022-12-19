@@ -29,6 +29,25 @@ namespace TimeHack {
         previousLook = pCamData->fwd;
     }
 
+    void updateActivityLevel() {
+        auto pPlayer = getPlayerPointer();
+
+        bool isThrowingGrenade = pPlayer->animId == 0xBC && pPlayer->animFrame < 0x12;
+
+        DWORD now = GetTickCount();
+        bool isActing = playerIsActingUntil > now || isThrowingGrenade;
+
+        if (pPlayer->vehicleEntityHandle != NULL_ENTITY_HANDLE)
+            isActing |= 
+                GetAsyncKeyState( 'W' ) || GetAsyncKeyState( 'A' ) ||
+                GetAsyncKeyState( 'S' ) || GetAsyncKeyState( 'D' ) ||
+                GetAsyncKeyState( VK_LBUTTON );
+
+        float targetActivityLevel = isActing ? 1.0f : 0.0f;
+
+        activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
+    }
+
     float getTimeScale() {
         auto pPlayer = getPlayerPointer();
         if (!pPlayer)
@@ -39,7 +58,11 @@ namespace TimeHack {
 
         float lookSpeedLevel = Math::smoothstep(0.0f, 1.0f, lookSpeedSmoothed * rotationActivityCoefficient) * maxTimescaleDueToTurning;
 
-        float netLevel = speedLevel + lookSpeedLevel + activityLevel;
+        // float netLevel = speedLevel + lookSpeedLevel + activityLevel;
+        float netLevel = lookSpeedLevel + activityLevel;
+
+        if (pPlayer->vehicleEntityHandle == NULL_ENTITY_HANDLE)
+            netLevel += speedLevel;
 
         return Math::smoothstep(0.0f, 1.0f, netLevel);
     }
@@ -251,14 +274,7 @@ namespace TimeHack {
                 return;
 
             updateLookActivity();
-
-            bool isThrowingGrenade = pPlayer->animId == 0xBC && pPlayer->animFrame < 0x12;
-
-            DWORD now = GetTickCount();
-            bool isActing = playerIsActingUntil > now || isThrowingGrenade;
-            float targetActivityLevel = isActing ? 1.0f : 0.0f;
-
-            activityLevel = Math::lerp(activityLevel, targetActivityLevel, activityDecayRate);
+            updateActivityLevel();
 
             //std::cout << pPlayer->animId << " " << pPlayer->animFrame << std::endl;
 
