@@ -29,6 +29,7 @@ namespace TimeHack {
         previousLook = pCamData->fwd;
     }
 
+    float previousPlasmaCharge;
     void updateActivityLevel() {
         auto pPlayer = getPlayerPointer();
 
@@ -41,7 +42,15 @@ namespace TimeHack {
             isActing |= 
                 GetAsyncKeyState( 'W' ) || GetAsyncKeyState( 'A' ) ||
                 GetAsyncKeyState( 'S' ) || GetAsyncKeyState( 'D' ) ||
-                GetAsyncKeyState( VK_LBUTTON );
+                GetAsyncKeyState( VK_LBUTTON ); // TODO: Replace with more robust checks for vehicle inputs.
+        
+        auto weaponRec = getRecord(pPlayer->childEntityHandle);
+        if (weaponRec.pEntity) {
+            float plasmaCharge = weaponRec.pEntity->plasmaCharge;
+            if (plasmaCharge > previousPlasmaCharge)
+                isActing = true;
+            previousPlasmaCharge = plasmaCharge;
+        }
 
         float targetActivityLevel = isActing ? 1.0f : 0.0f;
 

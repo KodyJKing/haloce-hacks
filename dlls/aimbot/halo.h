@@ -41,7 +41,9 @@ typedef struct {
 	float projectileAge; //0x0248
 	float projectileAgeRate; //0x024C
 	float projectileAge2; //0x0250
-	char pad_0254[200]; //0x0254
+	char pad_0254[36]; //0x0254
+	float plasmaCharge; //0x0278
+	char pad_027C[160]; //0x027C
 	uchar N0000010E; //0x031C
 	uchar N00000130; //0x031D
 	uchar frags; //0x031E
