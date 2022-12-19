@@ -35,7 +35,7 @@ typedef struct {
 	ushort bonesOffset; //0x01F2
 	char pad_01F4[60]; //0x01F4
 	Vec3 lookDir; //0x0230
-	char pad_023C[4]; //0x023C
+	float heat; //0x023C
 	float fuse; //0x0240
 	char pad_0244[4]; //0x0244
 	float projectileAge; //0x0248

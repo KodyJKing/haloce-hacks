@@ -90,7 +90,7 @@ namespace TimeHack {
 
         Vec3 old_pos, old_velocity;
         float old_projectileAge, old_projectileAge2, old_fuse;
-        float old_shield;
+        float old_shield, old_heat;
 
         #define REWIND(field, type) \
             auto delta_##field = pEntity->field - old_##field; \
@@ -98,6 +98,10 @@ namespace TimeHack {
         #define REWIND_INCREASES(field, type) \
             auto delta_##field = pEntity->field - old_##field; \
             if (delta_##field > (type) 0) \
+                pEntity->field = old_##field + (type)(delta_##field * timescale)
+        #define REWIND_DECREASES(field, type) \
+            auto delta_##field = pEntity->field - old_##field; \
+            if (delta_##field < (type) 0) \
                 pEntity->field = old_##field + (type)(delta_##field * timescale)
         #define SAVE(field) old_##field = pEntity->field
 
@@ -127,6 +131,10 @@ namespace TimeHack {
                     SAVE(projectileAge);
                     SAVE(projectileAge2);
                     SAVE(fuse);
+                    break;
+                }
+                case EntityCategory_Weapon: {
+                    SAVE(heat);
                     break;
                 }
                 default:
@@ -165,6 +173,10 @@ namespace TimeHack {
                     REWIND(projectileAge, float);
                     REWIND(projectileAge2, float);
                     REWIND(fuse, float);
+                    break;
+                }
+                case EntityCategory_Weapon: {
+                    REWIND_DECREASES(heat, float);
                     break;
                 }
                 default:
@@ -219,7 +231,7 @@ namespace TimeHack {
 
     // To check if the player has fired.
     namespace ConsumeClipHook {
-        
+
         void onConsumeClip(DWORD dwWeapon) {
             if (!dwWeapon)
                 return;
@@ -340,13 +352,12 @@ namespace TimeHack {
 
             updateLookActivity();
             updateActivityLevel();
+            renderTracers();
 
             //std::cout << pPlayer->animId << " " << pPlayer->animFrame << std::endl;
 
             // int midx = (int) pCamData->viewportWidth / 2;
             // Drawing::drawText(midx, 0, 0xFFFF0000, {0, 1}, "SUPERHOT Mod");
-
-            renderTracers();
 
         }
 
