@@ -80,6 +80,10 @@ namespace TimeHack {
         if (entityHandle == pPlayerData->entityHandle)
             return 1.0f;
 
+        auto rec = getRecord(entityHandle);
+        if (rec.typeId == TypeID_Pelican)
+            return 1.0f;
+
         return getTimeScale();
     }
 
@@ -212,10 +216,7 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
-        if (Options::freezeTime)
-            return false;
-        
-        bool isTimescaleDeadzone = Options::timeHack && getTimeScale() < timescaleDeadzone;
+        bool isTimescaleDeadzone = Options::timeHack && getTimeScaleForEntity(entityHandle) < timescaleDeadzone;
         bool isTimeFrozen = Options::freezeTime && !doSingleStep;
         bool shouldAnythingFreeze = isTimeFrozen || isTimescaleDeadzone;
         
@@ -343,6 +344,8 @@ namespace TimeHack {
     void renderTracers();
 
     void update() {
+
+        doSingleStep =  GetAsyncKeyState( VK_F5 );
 
         if (Options::timeHack) {
             auto pPlayer = getPlayerPointer();

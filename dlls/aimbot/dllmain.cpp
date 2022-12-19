@@ -50,8 +50,6 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
         while (TRUE) {
             if (GetAsyncKeyState(VK_F9))
                 break;
-            // endSceneHookRecord.rehook(Drawing::getDeviceVirtualTable(), 500);
-            // rehookVTable(&endSceneHookRecord, Drawing::getDeviceVirtualTable());
             Sleep(16);
         }
     }
@@ -114,8 +112,6 @@ void teleportToCrosshair() {
 
 void onSceneEnd() {
 
-    TimeHack::doSingleStep = false;
-
     checkOptionToggles();
 
     TimeHack::update();
@@ -125,9 +121,6 @@ void onSceneEnd() {
     if( keypressed('C') )
         teleportToCrosshair();
 
-    if ( keypressed(VK_F5) )
-        TimeHack::doSingleStep = true;
-    
 }
 
 // === Hooks ======

@@ -109,12 +109,13 @@ enum EntityCategory {
 };
 
 enum TypeID {
-    TypeID_Player = 0x0DEC,
-    TypeID_Marine = 0x0E60,
-    TypeID_Grunt  = 0x0D04,
-    TypeID_Jackal = 0x118C,
-    TypeID_Elite  = 0x1118,
-    TypeID_Hunter = 0x12E8,
+    TypeID_Player  = 0x0DEC,
+    TypeID_Marine  = 0x0E60,
+    TypeID_Grunt   = 0x0D04,
+    TypeID_Jackal  = 0x118C,
+    TypeID_Elite   = 0x1118,
+    TypeID_Hunter  = 0x12E8,
+    TypeID_Pelican = 0x0B30,
 };
 
 typedef struct {
