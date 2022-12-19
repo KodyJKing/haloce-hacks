@@ -102,6 +102,8 @@ struct JumpHook {
     DWORD trampolineReturn;
     size_t trampolineSize;
     char* stolenBytes;
+    char* transplantedBytes;
+    int transplantOffset;
 
     void allocTrampoline(size_t size) {
         trampolineSize = size;
@@ -111,6 +113,11 @@ struct JumpHook {
     void protectTrampoline() {
         DWORD oldProtect;
         VirtualProtect(trampolineBytes, trampolineSize, PAGE_EXECUTE_READ, &oldProtect);
+    }
+
+    void unprotectTrampoline() {
+        DWORD oldProtect;
+        VirtualProtect(trampolineBytes, trampolineSize, PAGE_EXECUTE_READWRITE, &oldProtect);
     }
 
     void hook() {
@@ -150,7 +157,15 @@ struct JumpHook {
     // Trampoline code generation
 
     void writeStolenBytes(char** head) {
+        transplantedBytes = *head;
+        transplantOffset = address - (int)transplantedBytes;
         writeBytes(head, (char*)address, numStolenBytes);
+    }
+
+    void fixStolenOffset(uint stolenByteIndex) {
+        char* pOffset = transplantedBytes + stolenByteIndex;
+        int* pOffsetI = (int*) pOffset;
+        *pOffsetI += transplantOffset;
     }
 
     void writeReturnJump(char** head) {

@@ -3,6 +3,11 @@ function prints(value)
     return false
 end
 
+function beeps()
+    beep()
+    return false
+end
+
 math.randomseed(os.time())
 function maybe(probability)
     return math.random() < probability

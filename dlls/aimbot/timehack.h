@@ -11,6 +11,7 @@ namespace TimeHack {
     const float timescaleDeadzone = 0.05f;
     const float rotationActivityCoefficient = 100.0f;
     const DWORD unpauseAfterFireMilis = 100;
+    const DWORD unpauseReloadMilis = 500;
     const float activityDecayRate = 0.05f;
     const float maxTimescaleDueToTurning = 0.5f;
     const float maxSpeed = walkingSpeed * 20.0f;
@@ -141,15 +142,16 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
-        bool isTimescaleDeadzone = getTimeScale() < timescaleDeadzone;
-        bool shouldAnythingFreeze = Options::freezeTime || Options::timeHack && isTimescaleDeadzone;
+        bool isTimescaleDeadzone = Options::timeHack && getTimeScale() < timescaleDeadzone;
+        bool isTimeFrozen = Options::freezeTime && !doSingleStep;
+        bool shouldAnythingFreeze = isTimeFrozen || isTimescaleDeadzone;
         
-        if (!shouldAnythingFreeze || doSingleStep)
+        if (!shouldAnythingFreeze)
             return true;
 
         EntityRecord rec = getRecord(entityHandle);
         if (rec.pEntity && rec.pEntity->entityCategory == EntityCategory_Projectile)
-            return !Options::freezeTime && !doSingleStep; // Deadzoning does not apply to projectiles.
+            return !isTimeFrozen; // Deadzoning does not apply to projectiles.
             
         return isPlayerControlled(entityHandle);
     }
@@ -223,9 +225,19 @@ namespace TimeHack {
 
     }
 
+    // Hook for instruction found to run on melee, weapon switch and reload.
+    void onMiscPlayerAction() {
+        playerIsActingUntil = GetTickCount() + unpauseReloadMilis;
+    }
+
     void init() {
         UpdateEntityHook::setup();
         ConsumeClipHook::setup();
+        
+        auto hook = addJumpHook("MiscPlayerAction", 0x0049327CU, 7, (DWORD) onMiscPlayerAction, HK_PUSH_STATE);
+        hook.unprotectTrampoline();
+        hook.fixStolenOffset(3);
+        hook.protectTrampoline();
     }
 
     void renderTracers();
@@ -250,8 +262,8 @@ namespace TimeHack {
 
             //std::cout << pPlayer->animId << " " << pPlayer->animFrame << std::endl;
 
-            int midx = (int) pCamData->viewportWidth / 2;
-            Drawing::drawText(midx, 0, 0xFFFF0000, {0, 1}, "SUPERHOT Mod");
+            // int midx = (int) pCamData->viewportWidth / 2;
+            // Drawing::drawText(midx, 0, 0xFFFF0000, {0, 1}, "SUPERHOT Mod");
 
             renderTracers();
 
