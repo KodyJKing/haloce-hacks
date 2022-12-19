@@ -90,10 +90,15 @@ namespace TimeHack {
 
         Vec3 old_pos, old_velocity;
         float old_projectileAge, old_projectileAge2, old_fuse;
+        float old_shield;
 
         #define REWIND(field, type) \
             auto delta_##field = pEntity->field - old_##field; \
             pEntity->field = old_##field + (type)(delta_##field * timescale)
+        #define REWIND_INCREASES(field, type) \
+            auto delta_##field = pEntity->field - old_##field; \
+            if (delta_##field > (type) 0) \
+                pEntity->field = old_##field + (type)(delta_##field * timescale)
         #define SAVE(field) old_##field = pEntity->field
 
         void save(DWORD entityHandle) {
@@ -113,10 +118,19 @@ namespace TimeHack {
             SAVE(pos);
             SAVE(velocity);
 
-            if (pEntity->entityCategory == EntityCategory_Projectile) {
-                SAVE(projectileAge);
-                SAVE(projectileAge2);
-                SAVE(fuse);
+            switch (pEntity->entityCategory) {
+                case EntityCategory_Biped: {
+                    SAVE(shield);
+                    break;
+                }
+                case EntityCategory_Projectile: {
+                    SAVE(projectileAge);
+                    SAVE(projectileAge2);
+                    SAVE(fuse);
+                    break;
+                }
+                default:
+                    break;
             }
 
         }
@@ -139,10 +153,22 @@ namespace TimeHack {
                 pEntity->animFrame = oldAnimFrame + framesToAdd;
             }
 
-            if (pEntity->entityCategory == EntityCategory_Projectile) {
-                REWIND(projectileAge, float);
-                REWIND(projectileAge2, float);
-                REWIND(fuse, float);
+            switch (pEntity->entityCategory) {
+                case EntityCategory_Biped: {
+                    float entityTimescale = timescale;
+                    timescale = getTimeScale(); // Do not use per-entity timescaling for shields.
+                    REWIND_INCREASES(shield, float);
+                    timescale = entityTimescale;
+                    break;
+                }
+                case EntityCategory_Projectile: {
+                    REWIND(projectileAge, float);
+                    REWIND(projectileAge2, float);
+                    REWIND(fuse, float);
+                    break;
+                }
+                default:
+                    break;
             }
 
             // Do not rewind positions if an entity changes mounts.
@@ -174,6 +200,9 @@ namespace TimeHack {
 
     bool doSingleStep = false;
     bool shouldEntityUpdate(DWORD entityHandle) {
+        if (Options::freezeTime)
+            return false;
+        
         bool isTimescaleDeadzone = Options::timeHack && getTimeScale() < timescaleDeadzone;
         bool isTimeFrozen = Options::freezeTime && !doSingleStep;
         bool shouldAnythingFreeze = isTimeFrozen || isTimescaleDeadzone;
@@ -190,6 +219,7 @@ namespace TimeHack {
 
     // To check if the player has fired.
     namespace ConsumeClipHook {
+        
         void onConsumeClip(DWORD dwWeapon) {
             if (!dwWeapon)
                 return;
@@ -223,17 +253,21 @@ namespace TimeHack {
     }
 
     namespace UpdateEntityHook {
+
+        // int updateDepth = 0;
         void preUpdateEntity(DWORD entityHandle) {
             if (!Options::timeHack)
                 return;
-
+            // updateDepth++;
+            // if (updateDepth > 1)
+            //     std::cout << "Warning: Nested updates!" << std::endl;
             Rewind::save(entityHandle);
         }
 
         void postUpdateEntity() {
             if (!Options::timeHack)
                 return;
-
+            // updateDepth--;
             Rewind::rewind();
         }
 
@@ -250,9 +284,31 @@ namespace TimeHack {
             __asm jmp [trampolineReturn];
         }
 
+        DWORD shieldsTrampolineReturn;
+        Naked void updateEntityShieldsHook() {
+            __asm mov [entityHandle], ebx;
+            preUpdateEntity(entityHandle);
+            __asm jmp [shieldsTrampolineReturn];
+        }
+
         void setup() {
-            addJumpHook("UpdateEntity", 0x004F4000U, 6, (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE, &trampolineReturn);
-            addJumpHook("PostUpdateEntity", 0x004F406CU, 6, (DWORD) postUpdateEntity, HK_PUSH_STATE);
+            // Normal update
+            addJumpHook(
+                "UpdateEntity", 0x004F4000U, 6,
+                (DWORD) updateEntityHook, HK_JUMP | HK_PUSH_STATE,
+                &trampolineReturn );
+            addJumpHook(
+                "PostUpdateEntity", 0x004F406CU, 6,
+                (DWORD) postUpdateEntity, HK_PUSH_STATE );
+
+            // Shields update
+            addJumpHook(
+                "UpdateEntityShields", 0x004ED510U, 5,
+                (DWORD) updateEntityShieldsHook, HK_JUMP | HK_PUSH_STATE,
+                &shieldsTrampolineReturn );
+            addJumpHook(
+                "PostUpdateEntityShields", 0x004ED988U, 7,
+                (DWORD) postUpdateEntity, HK_PUSH_STATE );
         }
 
     }
