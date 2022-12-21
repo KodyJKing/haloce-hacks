@@ -73,7 +73,7 @@ namespace BigHeadHack {
 
     void init() {
 
-        addJumpHook("UpdateBoneTransforms", 0x004f8310U, 9, (DWORD) rerouteHook, HK_JUMP | HK_STOLEN_AFTER, &trampolineReturn );
+        addJumpHook( "UpdateBoneTransforms", 0x004F8310U, 9, (DWORD) rerouteHook, HK_JUMP | HK_STOLEN_AFTER, &trampolineReturn );
 
     }
 

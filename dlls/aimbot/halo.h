@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vec3.h"
+#include "quaternion.h"
 
 #define NULL_ENTITY_HANDLE 0xFFFFFFFF
 
@@ -16,7 +17,8 @@ typedef struct {
 	char pad_0018[68]; //0x0018
 	Vec3 pos; //0x005C
 	Vec3 velocity; //0x0068
-	char pad_0074[24]; //0x0074
+	Quaternion rotationQuat; //0x0074
+	char pad_0084[8]; //0x0084
 	Vec3 angularVelocity; //0x008C
 	char pad_0098[8]; //0x0098
 	Vec3 eyePos; //0x00A0

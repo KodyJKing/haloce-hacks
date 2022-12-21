@@ -2,6 +2,7 @@
 #include "drawing.h"
 #include "hook.h"
 #include "vec3.h"
+#include "quaternion.h"
 #include "haloex.h"
 #include "util/math.h"
 
@@ -97,6 +98,7 @@ namespace TimeHack {
 
         ushort oldAnimFrame;
         DWORD updatingEntityHandle, oldParentEntityHandle;
+        Quaternion old_rotationQuat;
 
         Vec3 old_pos, old_velocity, old_angularVelocity;
         float old_projectileAge, old_projectileAge2, old_fuse;
@@ -151,6 +153,7 @@ namespace TimeHack {
                 }
                 case EntityCategory_Vehicle: {
                     SAVE(angularVelocity);
+                    SAVE(rotationQuat);
                     break;
                 }
                 default:
@@ -179,8 +182,9 @@ namespace TimeHack {
 
             switch (pEntity->entityCategory) {
                 case EntityCategory_Biped: {
+                    // Do not use per-entity timescaling for shields.
                     float entityTimescale = timescale;
-                    timescale = getTimeScale(); // Do not use per-entity timescaling for shields.
+                    timescale = getTimeScale();
                     REWIND_INCREASES(shield, float);
                     timescale = entityTimescale;
                     break;
@@ -197,6 +201,7 @@ namespace TimeHack {
                 }
                 case EntityCategory_Vehicle: {
                     REWIND(angularVelocity, Vec3);
+                    pEntity->rotationQuat = old_rotationQuat.lerpAndNormalize(pEntity->rotationQuat, timescale);
                     break;
                 }
                 default:
