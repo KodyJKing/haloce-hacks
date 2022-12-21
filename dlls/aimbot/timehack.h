@@ -2,7 +2,6 @@
 #include "drawing.h"
 #include "hook.h"
 #include "vec3.h"
-#include "quaternion.h"
 #include "haloex.h"
 #include "util/math.h"
 
@@ -255,8 +254,12 @@ namespace TimeHack {
             return true;
 
         EntityRecord rec = getRecord(entityHandle);
-        if (rec.pEntity && rec.pEntity->entityCategory == EntityCategory_Projectile)
-            return !isTimeFrozen; // Deadzoning does not apply to projectiles.
+        if (
+            rec.pEntity && 
+            ( rec.pEntity->entityCategory == EntityCategory_Projectile || 
+            rec.pEntity->entityCategory == EntityCategory_Vehicle )
+        )
+            return !isTimeFrozen; // Deadzoning does not apply to projectiles or vehicles.
             
         return isPlayerControlled(entityHandle);
     }
