@@ -9,6 +9,8 @@ typedef unsigned int uint;
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 
+// Forward and up vectors found thanks to the OpenSauce project.
+// https://github.com/MirisWisdom/OpenSauce/blob/a09c6c6240f1cf0959e8d82ec9dcb06cdeb07128/OpenSauce/shared/Include/blamlib/Halo1/objects/object_structures.hpp#L148
 typedef struct {
     // Created with ReClass.NET 1.2 by KN4CK3R
 	uint tagHandle; //0x0000
@@ -17,8 +19,8 @@ typedef struct {
 	char pad_0018[68]; //0x0018
 	Vec3 pos; //0x005C
 	Vec3 velocity; //0x0068
-	Quaternion rotationQuat; //0x0074
-	char pad_0084[8]; //0x0084
+	Vec3 fwd; //0x0074
+	Vec3 up; //0x0080
 	Vec3 angularVelocity; //0x008C
 	char pad_0098[8]; //0x0098
 	Vec3 eyePos; //0x00A0

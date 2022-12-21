@@ -98,7 +98,7 @@ namespace TimeHack {
 
         ushort oldAnimFrame;
         DWORD updatingEntityHandle, oldParentEntityHandle;
-        Quaternion old_rotationQuat;
+        Vec3 old_fwd, old_up;
 
         Vec3 old_pos, old_velocity, old_angularVelocity;
         float old_projectileAge, old_projectileAge2, old_fuse;
@@ -153,7 +153,8 @@ namespace TimeHack {
                 }
                 case EntityCategory_Vehicle: {
                     SAVE(angularVelocity);
-                    SAVE(rotationQuat);
+                    SAVE(fwd);
+                    SAVE(up);
                     break;
                 }
                 default:
@@ -201,7 +202,16 @@ namespace TimeHack {
                 }
                 case EntityCategory_Vehicle: {
                     REWIND(angularVelocity, Vec3);
-                    pEntity->rotationQuat = old_rotationQuat.lerpAndNormalize(pEntity->rotationQuat, timescale);
+
+                    // Interpolate orientation vectors.
+                    // Would be technically more correct to convert to quaternions and slerp,
+                    // but this approximation is good enough for small timesteps.
+                    pEntity->fwd = old_fwd.lerp(pEntity->fwd, timescale)
+                        .unit();
+                    pEntity->up = old_up.lerp(pEntity->up, timescale)
+                        .rejection(pEntity->fwd) // Make sure up is perpendicular to forward.
+                        .unit();
+
                     break;
                 }
                 default:

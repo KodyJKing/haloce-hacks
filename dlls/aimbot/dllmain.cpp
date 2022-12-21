@@ -171,7 +171,7 @@ namespace FullAutoHook {
 }
 
 void setupHooks() {
-    addJumpHook("End Scene", 0x005180A8, 5, (DWORD) onSceneEnd, HK_PUSH_STATE);
+    addJumpHook("EndScene", 0x005180A8, 5, (DWORD) onSceneEnd, HK_PUSH_STATE);
     FullAutoHook::setup();
 }
 
