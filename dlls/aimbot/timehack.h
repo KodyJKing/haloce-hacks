@@ -11,7 +11,7 @@ namespace TimeHack {
     const float timescaleDeadzone = 0.05f;
     const float rotationActivityCoefficient = 100.0f;
     const DWORD unpauseAfterFireMilis = 100;
-    const DWORD unpauseReloadMilis = 500;
+    const DWORD unpauseReloadMilis = 250;
     const float activityDecayRate = 0.05f;
     const float maxTimescaleDueToTurning = 0.5f;
     const float maxSpeed = walkingSpeed * 20.0f;
@@ -81,8 +81,14 @@ namespace TimeHack {
             return 1.0f;
 
         auto rec = getRecord(entityHandle);
-        if (rec.typeId == TypeID_Pelican)
+        if (getEntityTraits(rec).transport)
             return 1.0f;
+
+        if (rec.pEntity->vehicleEntityHandle != NULL_ENTITY_HANDLE) {
+            auto vehicleRec = getRecord(rec.pEntity->vehicleEntityHandle);
+            if (getEntityTraits(vehicleRec).transport)
+                return 1.0f;
+        }
 
         return getTimeScale();
     }
@@ -92,9 +98,10 @@ namespace TimeHack {
         ushort oldAnimFrame;
         DWORD updatingEntityHandle, oldParentEntityHandle;
 
-        Vec3 old_pos, old_velocity;
+        Vec3 old_pos, old_velocity, old_angularVelocity;
         float old_projectileAge, old_projectileAge2, old_fuse;
         float old_shield, old_heat;
+        uint old_ageMilis;
 
         #define REWIND(field, type) \
             auto delta_##field = pEntity->field - old_##field; \
@@ -125,6 +132,7 @@ namespace TimeHack {
 
             SAVE(pos);
             SAVE(velocity);
+            SAVE(ageMilis);
 
             switch (pEntity->entityCategory) {
                 case EntityCategory_Biped: {
@@ -139,6 +147,10 @@ namespace TimeHack {
                 }
                 case EntityCategory_Weapon: {
                     SAVE(heat);
+                    break;
+                }
+                case EntityCategory_Vehicle: {
+                    SAVE(angularVelocity);
                     break;
                 }
                 default:
@@ -183,6 +195,10 @@ namespace TimeHack {
                     REWIND_DECREASES(heat, float);
                     break;
                 }
+                case EntityCategory_Vehicle: {
+                    REWIND(angularVelocity, Vec3);
+                    break;
+                }
                 default:
                     break;
             }
@@ -191,8 +207,8 @@ namespace TimeHack {
             if (pEntity->parentEntityHandle == oldParentEntityHandle) {
                 REWIND(pos, Vec3);
             }
-
             REWIND(velocity, Vec3);
+            REWIND(ageMilis, uint);
 
         }
 

@@ -16,7 +16,9 @@ typedef struct {
 	char pad_0018[68]; //0x0018
 	Vec3 pos; //0x005C
 	Vec3 velocity; //0x0068
-	char pad_0074[44]; //0x0074
+	char pad_0074[24]; //0x0074
+	Vec3 angularVelocity; //0x008C
+	char pad_0098[8]; //0x0098
 	Vec3 eyePos; //0x00A0
 	char pad_00AC[8]; //0x00AC
 	ushort entityCategory; //0x00B4
@@ -116,22 +118,26 @@ enum TypeID {
     TypeID_Elite   = 0x1118,
     TypeID_Hunter  = 0x12E8,
     TypeID_Pelican = 0x0B30,
+    TypeID_Carrier = 0x071C,
 };
 
 typedef struct {
     uint living;
     uint hostile;
+    uint transport;
 } EntityTraits;
 
 EntityTraits getEntityTraits(EntityRecord record) {
     switch (record.typeId) {
-        case TypeID_Player:  return { 1, 0 };
-        case TypeID_Marine:  return { 1, 0 };
-        case TypeID_Grunt:   return { 1, 1 };
-        case TypeID_Jackal:  return { 1, 1 };
-        case TypeID_Elite:   return { 1, 1 };
-        case TypeID_Hunter:  return { 1, 1 };
-        default:             return { 0, 1 };
+        case TypeID_Player:   return { 1, 0, 0 };
+        case TypeID_Marine:   return { 1, 0, 0 };
+        case TypeID_Grunt:    return { 1, 1, 0 };
+        case TypeID_Jackal:   return { 1, 1, 0 };
+        case TypeID_Elite:    return { 1, 1, 0 };
+        case TypeID_Hunter:   return { 1, 1, 0 };
+        case TypeID_Pelican:  return { 1, 1, 1 };
+        case TypeID_Carrier:  return { 1, 1, 1 };
+        default:              return { 0, 1, 0 };
     }
 }
 

@@ -38,5 +38,6 @@ namespace Options {
     DllExport bool smartTargeting  = false;
     DllExport bool showLabels      = false;
     DllExport bool fullAuto        = false;
+    DllExport bool bigHeads        = false;
 }
 // ===============

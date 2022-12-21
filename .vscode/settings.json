@@ -106,7 +106,8 @@
         "executeCodeLocalEx",
         "getOpenedProcessID",
         "getCheatEngineProcessID",
-        "openProcess"
+        "openProcess",
+        "readFloat"
     ],
     "files.exclude": {
         "**/*.vcxproj*": true,

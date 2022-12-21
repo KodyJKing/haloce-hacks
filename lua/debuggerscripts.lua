@@ -44,6 +44,39 @@ function scanForValue(query, maxOffset, stride)
     return scanStack(query, maxOffset, stride)
 end
 
+function scanForUnitQuaternions(address, maxOffset, tolerance, trivialTolerance)
+
+    function isTrivial(v)
+        return (math.abs(v) < trivialTolerance) or
+            (math.abs(v - 1) < trivialTolerance)
+    end
+
+    local maxDWORDOffset = math.floor(maxOffset / 4)
+    for i = 0, maxDWORDOffset do
+        local a = readFloat(address + 4 * (i + 0))
+        local b = readFloat(address + 4 * (i + 1))
+        local c = readFloat(address + 4 * (i + 2))
+        local d = readFloat(address + 4 * (i + 3))
+
+        local trivial = isTrivial(a) or isTrivial(b) or
+            isTrivial(c) or isTrivial(d)
+
+        local len = math.sqrt(a * a + b * b + c * c + d * d)
+        local error = math.abs(len - 1)
+        local withinTolerance = error <= tolerance
+
+        if (not trivial) and withinTolerance then
+            print("Found unit quaternion:")
+            print("    Offset = " .. hex(4 * i))
+            print("    Address =", hex(address + 4 * i))
+            print("    Error =", error)
+            print("    Value =", a, b, c, d)
+            print("")
+        end
+    end
+
+end
+
 -------------------------------------------------------------------
 
 function traceCallPath(address, steps)

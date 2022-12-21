@@ -7,6 +7,7 @@
 #include "aimbot.h"
 #include "esp.h"
 #include "timehack.h"
+#include "bigheadhack.h"
 
 HMODULE myHModule;
 
@@ -44,6 +45,7 @@ DWORD __stdcall myThread(LPVOID lpParameter) {
 
     Drawing::init();
     TimeHack::init();
+    BigHeadHack::init();
     setupHooks();
 
     if (!err) {
