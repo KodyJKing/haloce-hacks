@@ -110,7 +110,7 @@
         "readFloat"
     ],
     "files.exclude": {
-        "**/*.vcxproj*": true,
+        //"**/*.vcxproj*": true,
         "**/*.vs": true
     }
 }

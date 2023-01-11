@@ -27,7 +27,7 @@
             <CheatEntry>
               <ID>8</ID>
               <Description>"Number of Entities"</Description>
-              <LastState Value="1036" RealAddress="400506E4"/>
+              <LastState Value="325" RealAddress="400506E4"/>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
               <Address>400506E4</Address>
@@ -35,7 +35,7 @@
             <CheatEntry>
               <ID>23</ID>
               <Description>"Number of Entities (Hex)"</Description>
-              <LastState Value="040C" RealAddress="400506E4"/>
+              <LastState Value="0145" RealAddress="400506E4"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
@@ -141,7 +141,6 @@ dealloc(newmem)
             <CheatEntry>
               <ID>12</ID>
               <Description>"Projectile Count"</Description>
-              <LastState Value="89349" RealAddress="008C0010"/>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
               <Address>projectileCount</Address>
@@ -412,7 +411,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                 <CheatEntry>
                   <ID>59</ID>
                   <Description>"hitType"</Description>
-                  <LastState Value="102" RealAddress="009D0000"/>
+                  <LastState Value="5" RealAddress="009D0000"/>
                   <ShowAsSigned>1</ShowAsSigned>
                   <VariableType>Byte</VariableType>
                   <Address>raycastResult</Address>
@@ -477,7 +476,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                     <CheatEntry>
                       <ID>66</ID>
                       <Description>"y"</Description>
-                      <LastState Value="0" RealAddress="009D0028"/>
+                      <LastState Value="2.339271074E-17" RealAddress="009D0028"/>
                       <ShowAsSigned>1</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>raycastResult+28</Address>
@@ -485,7 +484,7 @@ halo.exe+C04BE: 84 C0              - test al,al
                     <CheatEntry>
                       <ID>67</ID>
                       <Description>"z"</Description>
-                      <LastState Value="0" RealAddress="009D002C"/>
+                      <LastState Value="-3.944545267E-31" RealAddress="009D002C"/>
                       <ShowAsSigned>1</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>raycastResult+2C</Address>
@@ -604,7 +603,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>41</ID>
                       <Description>"x"</Description>
-                      <LastState Value="1.982708659E34" RealAddress="009C0000"/>
+                      <LastState Value="8.908184658E-39" RealAddress="009C0000"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement</Address>
@@ -612,7 +611,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>42</ID>
                       <Description>"y"</Description>
-                      <LastState Value="4.484155086E-44" RealAddress="009C0004"/>
+                      <LastState Value="9.091871065E-39" RealAddress="009C0004"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+04</Address>
@@ -620,7 +619,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>43</ID>
                       <Description>"z"</Description>
-                      <LastState Value="1.401298464E-45" RealAddress="009C0008"/>
+                      <LastState Value="1.046940211E-38" RealAddress="009C0008"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>displacement+08</Address>
@@ -637,7 +636,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>44</ID>
                       <Description>"x"</Description>
-                      <LastState Value="2.802596929E-44" RealAddress="009C0020"/>
+                      <LastState Value="0" RealAddress="009C0020"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+00</Address>
@@ -645,7 +644,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>46</ID>
                       <Description>"y"</Description>
-                      <LastState Value="1.401298464E-45" RealAddress="009C0024"/>
+                      <LastState Value="0" RealAddress="009C0024"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+04</Address>
@@ -653,7 +652,7 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>45</ID>
                       <Description>"z"</Description>
-                      <LastState Value="2.802596929E-45" RealAddress="009C0028"/>
+                      <LastState Value="9.968408156E-18" RealAddress="009C0028"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>origin+08</Address>
@@ -1273,7 +1272,6 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>35</ID>
                   <Description>"Value to render"</Description>
-                  <LastState Value="00015D3F" RealAddress="008C0020"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -1432,7 +1430,7 @@ tryInjectDll(memrec)
         <CheatEntry>
           <ID>81</ID>
           <Description>"Invincibility"</Description>
-          <LastState Activated="1"/>
+          <LastState/>
           <VariableType>Auto Assembler Script</VariableType>
           <AssemblerScript>{ Game   : halo.exe
   Version: 
@@ -1506,7 +1504,7 @@ halo.exe+B0014: D8 1D 8C 2B 67 00     - fcomp dword ptr [halo.exe+272B8C]
         <CheatEntry>
           <ID>82</ID>
           <Description>"Infinite Ammo"</Description>
-          <LastState Activated="1"/>
+          <LastState/>
           <VariableType>Auto Assembler Script</VariableType>
           <AssemblerScript>define(consumeClip,halo.exe+C4096)
 define(consumeGrenade,halo.exe+16E314)
@@ -1919,7 +1917,7 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>76</ID>
                   <Description>"pointer"</Description>
-                  <LastState Value="00650075" RealAddress="10D30000"/>
+                  <LastState Value="0000000A" RealAddress="10D30000"/>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>4 Bytes</VariableType>
@@ -1928,7 +1926,6 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>47</ID>
                   <Description>"health"</Description>
-                  <LastState Value="-6.47878057E-27" RealAddress="00650155"/>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>Float</VariableType>
                   <Address>[player]+E0</Address>
@@ -1936,7 +1933,6 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>51</ID>
                   <Description>"shield"</Description>
-                  <LastState Value="513.5783691" RealAddress="00650159"/>
                   <ShowAsSigned>0</ShowAsSigned>
                   <VariableType>Float</VariableType>
                   <Address>[player]+E4</Address>
@@ -1951,7 +1947,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>50</ID>
                       <Description>"x"</Description>
-                      <LastState Value="2054.313721" RealAddress="006500D1"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+5C</Address>
@@ -1959,7 +1954,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>49</ID>
                       <Description>"y"</Description>
-                      <LastState Value="-1.658668011E-24" RealAddress="006500D5"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+60</Address>
@@ -1967,7 +1961,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>48</ID>
                       <Description>"z"</Description>
-                      <LastState Value="2054.313721" RealAddress="006500D9"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+64</Address>
@@ -1984,7 +1977,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>101</ID>
                       <Description>"x"</Description>
-                      <LastState Value="-3.859536418E-34" RealAddress="006500DD"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+68</Address>
@@ -1992,7 +1984,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>104</ID>
                       <Description>"y"</Description>
-                      <LastState Value="2054.313721" RealAddress="006500E1"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+6C</Address>
@@ -2000,7 +1991,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>103</ID>
                       <Description>"z"</Description>
-                      <LastState Value="2.664646563E36" RealAddress="006500E5"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+70</Address>
@@ -2017,7 +2007,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>54</ID>
                       <Description>"x"</Description>
-                      <LastState Value="2.198207613E32" RealAddress="006502A5"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+230</Address>
@@ -2025,7 +2014,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>53</ID>
                       <Description>"y"</Description>
-                      <LastState Value="2.934088497E32" RealAddress="006502A9"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+234</Address>
@@ -2033,7 +2021,6 @@ dealloc(newmem)
                     <CheatEntry>
                       <ID>52</ID>
                       <Description>"z"</Description>
-                      <LastState Value="1.017876975E31" RealAddress="006502AD"/>
                       <ShowAsSigned>0</ShowAsSigned>
                       <VariableType>Float</VariableType>
                       <Address>[player]+238</Address>
@@ -2054,7 +2041,7 @@ dealloc(newmem)
             <CheatEntry>
               <ID>71</ID>
               <Description>"Entity Count"</Description>
-              <LastState Value="040C" RealAddress="400506E4"/>
+              <LastState Value="0145" RealAddress="400506E4"/>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>2 Bytes</VariableType>
@@ -2086,84 +2073,84 @@ dealloc(newmem)
                 <CheatEntry>
                   <ID>83</ID>
                   <Description>"x"</Description>
-                  <LastState Value="33.61590195" RealAddress="00719BC8"/>
+                  <LastState Value="-15.87628841" RealAddress="00719BC8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>84</ID>
                   <Description>"y"</Description>
-                  <LastState Value="-60.72536469" RealAddress="00719BCC"/>
+                  <LastState Value="-20.90577888" RealAddress="00719BCC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+4</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>85</ID>
                   <Description>"z"</Description>
-                  <LastState Value="10.29636574" RealAddress="00719BD0"/>
+                  <LastState Value="2.519966602" RealAddress="00719BD0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+8</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>86</ID>
                   <Description>"fx"</Description>
-                  <LastState Value="0.201052472" RealAddress="00719BD4"/>
+                  <LastState Value="-0.2084353715" RealAddress="00719BD4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>87</ID>
                   <Description>"fy"</Description>
-                  <LastState Value="0.9523401856" RealAddress="00719BD8"/>
+                  <LastState Value="-0.9627425671" RealAddress="00719BD8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+10</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>88</ID>
                   <Description>"fz"</Description>
-                  <LastState Value="-0.229403615" RealAddress="00719BDC"/>
+                  <LastState Value="-0.1722831279" RealAddress="00719BDC"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+14</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>89</ID>
                   <Description>"ux"</Description>
-                  <LastState Value="0.04738588259" RealAddress="00719BE0"/>
+                  <LastState Value="-0.03645499051" RealAddress="00719BE0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+18</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>90</ID>
                   <Description>"uy"</Description>
-                  <LastState Value="0.2244562209" RealAddress="00719BE4"/>
+                  <LastState Value="-0.1683820337" RealAddress="00719BE4"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+1C</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>91</ID>
                   <Description>"uz"</Description>
-                  <LastState Value="0.9733313322" RealAddress="00719BE8"/>
+                  <LastState Value="0.9850474596" RealAddress="00719BE8"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+20</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>92</ID>
                   <Description>"FOV"</Description>
-                  <LastState Value="0.8887580037" RealAddress="00719BF0"/>
+                  <LastState Value="0.8396827579" RealAddress="00719BF0"/>
                   <VariableType>Float</VariableType>
                   <Address>00719BC8+28</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>93</ID>
                   <Description>"viewportHeight"</Description>
-                  <LastState Value="1024" RealAddress="00719C50"/>
+                  <LastState Value="600" RealAddress="00719C50"/>
                   <VariableType>2 Bytes</VariableType>
                   <Address>00719BC8+88</Address>
                 </CheatEntry>
                 <CheatEntry>
                   <ID>94</ID>
                   <Description>"viewportWidth"</Description>
-                  <LastState Value="1280" RealAddress="00719C52"/>
+                  <LastState Value="800" RealAddress="00719C52"/>
                   <VariableType>2 Bytes</VariableType>
                   <Address>00719BC8+8A</Address>
                 </CheatEntry>
@@ -2362,109 +2349,49 @@ dealloc(newmem)
             </CheatEntry>
           </CheatEntries>
         </CheatEntry>
-      </CheatEntries>
-    </CheatEntry>
-    <CheatEntry>
-      <ID>119</ID>
-      <Description>"QuaternionEx"</Description>
-      <Options moAlwaysHideChildren="1" moManualExpandCollapse="1"/>
-      <LastState Value="147 37 3 191 46 131 90 63 140 33 194 189 130 133 255 60 134 226 3 62 6 190 125 63" RealAddress="4005E9E8"/>
-      <ShowAsSigned>0</ShowAsSigned>
-      <VariableType>Array of byte</VariableType>
-      <ByteLength>24</ByteLength>
-      <Address>4005E974+74</Address>
-      <CheatEntries>
         <CheatEntry>
-          <ID>120</ID>
-          <Description>"x"</Description>
-          <LastState Value="-0.5122920871" RealAddress="4005E9E8"/>
+          <ID>114</ID>
+          <Description>"Quaternion"</Description>
+          <Options moAlwaysHideChildren="1" moManualExpandCollapse="1"/>
+          <LastState Value="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" RealAddress="4005E9E8"/>
           <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+0</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>121</ID>
-          <Description>"y"</Description>
-          <LastState Value="0.8535641432" RealAddress="4005E9EC"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+4</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>122</ID>
-          <Description>"z"</Description>
-          <LastState Value="-0.09479054809" RealAddress="4005E9F0"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+8</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>123</ID>
-          <Description>"w"</Description>
-          <LastState Value="0.03119159117" RealAddress="4005E9F4"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+C</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>124</ID>
-          <Description>"u1"</Description>
-          <LastState Value="0.1287938058" RealAddress="4005E9F8"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+10</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>125</ID>
-          <Description>"u2"</Description>
-          <LastState Value="0.9911807775" RealAddress="4005E9FC"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+14</Address>
-        </CheatEntry>
-      </CheatEntries>
-    </CheatEntry>
-    <CheatEntry>
-      <ID>114</ID>
-      <Description>"Quaternion"</Description>
-      <Options moAlwaysHideChildren="1" moManualExpandCollapse="1"/>
-      <LastState Value="147 37 3 191 46 131 90 63 140 33 194 189 130 133 255 60" RealAddress="4005E9E8"/>
-      <ShowAsSigned>0</ShowAsSigned>
-      <VariableType>Array of byte</VariableType>
-      <ByteLength>16</ByteLength>
-      <Address>4005E974+74</Address>
-      <CheatEntries>
-        <CheatEntry>
-          <ID>115</ID>
-          <Description>"x"</Description>
-          <LastState Value="-0.5122920871" RealAddress="4005E9E8"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+0</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>118</ID>
-          <Description>"y"</Description>
-          <LastState Value="0.8535641432" RealAddress="4005E9EC"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+4</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>116</ID>
-          <Description>"z"</Description>
-          <LastState Value="-0.09479054809" RealAddress="4005E9F0"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+8</Address>
-        </CheatEntry>
-        <CheatEntry>
-          <ID>117</ID>
-          <Description>"w"</Description>
-          <LastState Value="0.03119159117" RealAddress="4005E9F4"/>
-          <ShowAsSigned>0</ShowAsSigned>
-          <VariableType>Float</VariableType>
-          <Address>+C</Address>
+          <VariableType>Array of byte</VariableType>
+          <ByteLength>16</ByteLength>
+          <Address>4005E974+74</Address>
+          <CheatEntries>
+            <CheatEntry>
+              <ID>115</ID>
+              <Description>"x"</Description>
+              <LastState Value="0" RealAddress="4005E9E8"/>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>+0</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>118</ID>
+              <Description>"y"</Description>
+              <LastState Value="0" RealAddress="4005E9EC"/>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>+4</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>116</ID>
+              <Description>"z"</Description>
+              <LastState Value="0" RealAddress="4005E9F0"/>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>+8</Address>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>117</ID>
+              <Description>"w"</Description>
+              <LastState Value="0" RealAddress="4005E9F4"/>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>+C</Address>
+            </CheatEntry>
+          </CheatEntries>
         </CheatEntry>
       </CheatEntries>
     </CheatEntry>
