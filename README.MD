@@ -4,7 +4,7 @@
 
 ## Building
 
-Install the D3D9 SDK, make sure the environment variable `DXSDK_DIR` is set and build with Visual Studio 19+
+Install the [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812), make sure the environment variable `DXSDK_DIR` is set and build with Visual Studio 19+
 
 ## Running
 
